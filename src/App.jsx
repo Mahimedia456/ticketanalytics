@@ -3,12 +3,11 @@ import AppLayout from "./layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 
 const pages = [
-  { path: "/ticket-analysis", title: "Ticket Analysis" },
-  { path: "/rma", title: "RMA" },
-  { path: "/returns-emea-jan", title: "Returns EMEA Jan" },
-  { path: "/returns-usa-jan", title: "Returns USA Jan" },
-  { path: "/good-satisfaction", title: "Good Satisfaction" },
-  { path: "/bad-satisfaction", title: "Bad Satisfaction" },
+  { path: "/ticket-analysis", title: "Ticket Analysis", type: "ticket" },
+  { path: "/returns-emea-jan", title: "Returns EMEA Jan", type: "rma-emea" },
+  { path: "/returns-usa-jan", title: "Returns USA Jan", type: "ticket" },
+  { path: "/good-satisfaction", title: "Good Satisfaction", type: "ticket" },
+  { path: "/bad-satisfaction", title: "Bad Satisfaction", type: "ticket" },
 ];
 
 export default function App() {
@@ -22,7 +21,13 @@ export default function App() {
             <Route
               key={page.path}
               path={page.path}
-              element={<DashboardPage pageTitle={page.title} storageKey={page.path} />}
+              element={
+                <DashboardPage
+                  pageTitle={page.title}
+                  storageKey={page.path}
+                  pageType={page.type}
+                />
+              }
             />
           ))}
         </Route>

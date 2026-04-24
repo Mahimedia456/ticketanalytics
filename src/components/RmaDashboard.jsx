@@ -3,14 +3,14 @@ import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
 
-export default function Dashboard({
-  title,
+export default function RmaDashboard({
+  title = "RMA Dashboard",
   rows = [],
   analytics = {},
   color = "#4fd1a5",
 }) {
   async function exportPDF() {
-    const element = document.getElementById("dashboard-export");
+    const element = document.getElementById("rma-dashboard-export");
     if (!element) return;
 
     const canvas = await html2canvas(element, {
@@ -39,10 +39,8 @@ export default function Dashboard({
       heightLeft -= pageHeight;
     }
 
-    pdf.save(`${title || "dashboard"}.pdf`);
+    pdf.save(`${title}.pdf`);
   }
-
-  const productsData = analytics.productAll || analytics.product || [];
 
   return (
     <div className="w-full">
@@ -59,17 +57,15 @@ export default function Dashboard({
         </button>
       </div>
 
-      <div id="dashboard-export" className="space-y-5 pb-10">
+      <div id="rma-dashboard-export" className="space-y-5 pb-10">
         <div
           className="rounded-3xl p-10 text-center shadow-sm"
           style={{ backgroundColor: color }}
         >
-          <h1 className="text-4xl font-black text-slate-900">
-            {title || "Analytics Dashboard"}
-          </h1>
+          <h1 className="text-4xl font-black text-slate-900">{title}</h1>
           <p className="mt-2 text-slate-800 font-medium">
-            Live Excel dashboard with weekly, monthly, category, region, and
-            product analysis.
+            RMA returns, replacement sent, rush, B-stock, D-stock, receive-only,
+            pending, and product-wise analysis.
           </p>
         </div>
 
@@ -88,62 +84,90 @@ export default function Dashboard({
           ))}
         </div>
 
-        <div className="grid xl:grid-cols-2 gap-5">
+        <div className="grid 2xl:grid-cols-2 gap-5">
           <ChartCard
-            title="Weekly Trend"
-            data={analytics.weekly || []}
-            defaultType="bar"
-            xKey="date"
-            yKey="count"
-            defaultColor={color}
-          />
-
-          <ChartCard
-            title="Monthly Trend"
+            title="RMA Monthly Returns"
             data={analytics.monthly || []}
             defaultType="bar"
-            xKey="date"
-            yKey="count"
             defaultColor={color}
           />
 
           <ChartCard
-            title="Top Categories"
-            data={analytics.category || []}
+            title="RMA Flow Comparison"
+            data={analytics.comparison || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+        </div>
+
+        <div className="grid 2xl:grid-cols-2 gap-5">
+          <ChartCard
+            title="Product-wise RMA Returns"
+            data={analytics.products || []}
             defaultType="bar"
             defaultColor={color}
           />
 
           <ChartCard
-            title="Tickets by Region"
-            data={analytics.region || []}
+            title="Rush Sent Out by Product"
+            data={analytics.rushSent || []}
             defaultType="bar"
             defaultColor={color}
           />
 
-          <div className="xl:col-span-2">
-            <ChartCard
-              title="All Products / Models"
-              data={productsData}
-              defaultType="bar"
-              defaultColor={color}
-            />
-          </div>
+          <ChartCard
+            title="Replacement / RMA Units by Product"
+            data={analytics.rmaUnits || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="Receive Only by Product"
+            data={analytics.receiveOnly || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="B-Stock by Product"
+            data={analytics.bStock || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="D-Stock by Product"
+            data={analytics.dStock || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="Pending Ship / Receive"
+            data={analytics.pending || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="Drive RMA Cases by Product"
+            data={analytics.driveCases || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
         </div>
 
         <div className="dashboard-card p-5">
-          <h3 className="font-black text-lg mb-4">Summary Tables</h3>
+          <h3 className="font-black text-lg mb-4">RMA Summary Tables</h3>
 
           <div className="grid xl:grid-cols-3 gap-5">
-            <MiniTable title="Monthly Summary" data={analytics.monthly || []} dateMode />
-            <MiniTable title="Weekly Summary" data={analytics.weekly || []} dateMode />
-            <MiniTable title="Top Regions" data={analytics.region || []} />
-            <MiniTable title="Top Categories" data={analytics.category || []} />
-            <MiniTable
-              title="All Products / Models"
-              data={productsData}
-              limit={9999}
-            />
+            <MiniTable title="All Product RMA Returns" data={analytics.products || []} />
+            <MiniTable title="Rush Sent Out" data={analytics.rushSent || []} />
+            <MiniTable title="Replacement / RMA Units" data={analytics.rmaUnits || []} />
+            <MiniTable title="Receive Only" data={analytics.receiveOnly || []} />
+            <MiniTable title="B-Stock" data={analytics.bStock || []} />
+            <MiniTable title="D-Stock" data={analytics.dStock || []} />
           </div>
         </div>
       </div>
@@ -151,7 +175,7 @@ export default function Dashboard({
   );
 }
 
-function MiniTable({ title, data = [], dateMode = false, limit = 12 }) {
+function MiniTable({ title, data = [] }) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
       <div className="bg-slate-50 px-4 py-3 font-black">{title}</div>
@@ -161,17 +185,17 @@ function MiniTable({ title, data = [], dateMode = false, limit = 12 }) {
           <thead>
             <tr>
               <th>#</th>
-              <th>{dateMode ? "Period" : "Name"}</th>
-              <th>Count</th>
+              <th>Product</th>
+              <th>Total</th>
             </tr>
           </thead>
 
           <tbody>
             {data.length ? (
-              data.slice(0, limit).map((row, index) => (
+              data.map((row, index) => (
                 <tr key={`${title}-${index}`}>
                   <td>{index + 1}</td>
-                  <td>{dateMode ? row.date : row.name}</td>
+                  <td>{row.name}</td>
                   <td className="font-bold">{row.count}</td>
                 </tr>
               ))

@@ -62,7 +62,6 @@ export default function ThemePanel({ color, setColor, analytics, mapping, setMap
         <SelectMap label="Category Column" value={mapping.categoryCol} field="categoryCol" />
         <SelectMap label="Region Column" value={mapping.regionCol} field="regionCol" />
         <SelectMap label="Product / Model Column" value={mapping.productCol} field="productCol" />
-        <SelectMap label="Status Column" value={mapping.statusCol} field="statusCol" />
       </div>
     </div>
   );
