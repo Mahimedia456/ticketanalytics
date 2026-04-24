@@ -36,16 +36,25 @@ export function buildBadAnalytics(inputRows = []) {
 
   const columns = rows.length ? Object.keys(rows[0]) : [];
 
-  const ticketCol = findColumn(columns, ["ticket id", "ticketid", "ticket"]);
+  const ticketCol = findColumn(columns, [
+    "ticket id",
+    "ticketid",
+    "ticket",
+    "id",
+  ]);
+
   const commentCol = findColumn(columns, [
     "bad satisfaction tickets comment",
     "bad satisfaction comment",
     "satisfaction comments",
-    "comment",
+    "satisfaction comment",
     "comments",
+    "comment",
   ]);
+
   const notesCol = findColumn(columns, [
     "reason notes",
+    "reason note",
     "reason",
     "notes",
     "note",
@@ -69,8 +78,13 @@ export function buildBadAnalytics(inputRows = []) {
 
   const normalizedRows = rows.map((row) => {
     const comment = cleanText(row[commentCol]);
-    const reasonNotes = cleanText(row[notesCol]);
+
+    const reasonNotes = notesCol
+      ? cleanText(row[notesCol])
+      : comment;
+
     const total = totalCol ? cleanNumber(row[totalCol]) || 1 : 1;
+
     const withComment = withCommentCol
       ? cleanNumber(row[withCommentCol])
       : comment
@@ -87,9 +101,18 @@ export function buildBadAnalytics(inputRows = []) {
     };
   });
 
-  const totalTickets = normalizedRows.reduce((sum, row) => sum + row.total, 0);
-  const withComment = normalizedRows.reduce((sum, row) => sum + row.withComment, 0);
+  const totalTickets = normalizedRows.reduce(
+    (sum, row) => sum + row.total,
+    0
+  );
+
+  const withComment = normalizedRows.reduce(
+    (sum, row) => sum + row.withComment,
+    0
+  );
+
   const withoutComment = totalTickets - withComment;
+
   const withCommentPercent = totalTickets
     ? Math.round((withComment / totalTickets) * 100)
     : 0;

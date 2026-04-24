@@ -45,7 +45,20 @@ export default function BadSatisfactionDashboard({
         </div>
 
         <div className="pdf-section">
-          <Kpis analytics={analytics} color={themeColor} />
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {(analytics.kpis || []).map((kpi) => (
+              <div key={kpi.title} className="dashboard-card p-6">
+                <p className="text-slate-500 text-sm font-semibold">
+                  {kpi.title}
+                </p>
+                <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
+                <div
+                  className="w-14 h-1.5 rounded-full mt-4"
+                  style={{ backgroundColor: themeColor }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="grid xl:grid-cols-2 gap-5">
@@ -64,25 +77,11 @@ export default function BadSatisfactionDashboard({
           />
         </div>
 
-        <TicketTable title="Bad Satisfaction Ticket Table" rows={analytics.rows || []} />
+        <TicketTable
+          title="Bad Satisfaction Ticket Table"
+          rows={analytics.rows || []}
+        />
       </div>
-    </div>
-  );
-}
-
-function Kpis({ analytics, color }) {
-  return (
-    <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {(analytics.kpis || []).map((kpi) => (
-        <div key={kpi.title} className="dashboard-card p-6">
-          <p className="text-slate-500 text-sm font-semibold">{kpi.title}</p>
-          <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
-          <div
-            className="w-14 h-1.5 rounded-full mt-4"
-            style={{ backgroundColor: color }}
-          />
-        </div>
-      ))}
     </div>
   );
 }
@@ -105,14 +104,19 @@ function TicketTable({ title, rows = [] }) {
 
           <tbody>
             {rows.length ? (
-              rows.map((row, index) => (
-                <tr key={`${row.ticketId}-${index}`}>
-                  <td>{index + 1}</td>
-                  <td className="font-bold">{row.ticketId}</td>
-                  <td>{row.comment || "No comment"}</td>
-                  <td>{row.reasonNotes || "No notes"}</td>
-                </tr>
-              ))
+              rows.map((row, index) => {
+                const comment = row.comment || "";
+                const notes = row.reasonNotes || row.comment || "";
+
+                return (
+                  <tr key={`${row.ticketId}-${index}`}>
+                    <td>{index + 1}</td>
+                    <td className="font-bold">{row.ticketId}</td>
+                    <td>{comment || "No comment"}</td>
+                    <td>{notes || "No notes"}</td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="4" className="text-center text-slate-400 py-6">
