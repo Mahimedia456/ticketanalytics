@@ -3,12 +3,16 @@ import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
 
+const DARK = "#0f172a";
+
 export default function RmaUsDashboard({
   title = "RMA US Dashboard",
   rows = [],
   analytics = {},
-  color = "#38bdf8",
+  color = DARK,
 }) {
+  const themeColor = color || DARK;
+
   async function exportPDF() {
     const element = document.getElementById("rma-us-dashboard-export");
     if (!element) return;
@@ -60,12 +64,12 @@ export default function RmaUsDashboard({
       <div id="rma-us-dashboard-export" className="space-y-5 pb-10">
         <div
           className="rounded-3xl p-10 text-center shadow-sm"
-          style={{ backgroundColor: color }}
+          style={{ backgroundColor: themeColor }}
         >
-          <h1 className="text-4xl font-black text-slate-900">{title}</h1>
-          <p className="mt-2 text-slate-800 font-medium">
-            US RMA analysis for actual returns, rush sent out, RMA units, rush
-            sent B-stock, received D/B/A stock, pending items, and drive cases.
+          <h1 className="text-4xl font-black text-white">{title}</h1>
+          <p className="mt-2 text-white/90 font-medium">
+            US RMA analysis for actual returns, rush sent out, RMA units,
+            rush sent B-stock, received D/B/A stock, pending items, and drive cases.
           </p>
         </div>
 
@@ -76,35 +80,28 @@ export default function RmaUsDashboard({
               <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
               <div
                 className="w-14 h-1.5 rounded-full mt-4"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: themeColor }}
               />
             </div>
           ))}
         </div>
 
         <div className="grid xl:grid-cols-2 gap-5">
-          <ChartCard title="Monthly RMA Returns" data={analytics.monthlyReturns || []} defaultType="bar" defaultColor={color} />
-          <ChartCard title="US RMA Flow Comparison" data={analytics.flowComparison || []} defaultType="bar" defaultColor={color} />
+          <ChartCard title="Monthly RMA Returns" data={analytics.monthlyReturns || []} defaultType="bar" defaultColor={themeColor} />
+          <ChartCard title="US RMA Flow Comparison" data={analytics.flowComparison || []} defaultType="bar" defaultColor={themeColor} />
 
           <div className="xl:col-span-2">
-            <ChartCard
-              title="All Product / SKU RMA Returns"
-              data={analytics.skuReturns || []}
-              defaultType="bar"
-              defaultColor={color}
-              horizontal
-              limit={100}
-            />
+            <ChartCard title="All Product / SKU RMA Returns" data={analytics.skuReturns || []} defaultType="bar" defaultColor={themeColor} horizontal limit={100} />
           </div>
 
-          <ChartCard title="Rush Sent Out by Product" data={analytics.rushSent || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="RMA Units by Product" data={analytics.rmaUnits || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="Rush Sent B-Stock by Product" data={analytics.rushBStock || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="Receive D-Stock by Product" data={analytics.receiveDStock || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="Receive B-Stock by Product" data={analytics.receiveBStock || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="Receive A-Stock by Product" data={analytics.receiveAStock || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
-          <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={color} />
-          <ChartCard title="Google Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={color} horizontal limit={60} />
+          <ChartCard title="Rush Sent Out by Product" data={analytics.rushSent || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="RMA Units by Product" data={analytics.rmaUnits || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="Rush Sent B-Stock by Product" data={analytics.rushBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="Receive D-Stock by Product" data={analytics.receiveDStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="Receive B-Stock by Product" data={analytics.receiveBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="Receive A-Stock by Product" data={analytics.receiveAStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
+          <ChartCard title="Google Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
         </div>
 
         <div className="dashboard-card p-5">

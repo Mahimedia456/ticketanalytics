@@ -3,12 +3,16 @@ import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
 
+const DARK = "#0f172a";
+
 export default function Dashboard({
   title = "Ticket Analysis",
   rows = [],
   analytics = {},
-  color = "#4fd1a5",
+  color = DARK,
 }) {
+  const themeColor = color || DARK;
+
   async function exportPDF() {
     const element = document.getElementById("ticket-dashboard-export");
     if (!element) return;
@@ -21,7 +25,6 @@ export default function Dashboard({
 
     const img = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
-
     const pageWidth = 210;
     const pageHeight = 297;
     const imgHeight = (canvas.height * pageWidth) / canvas.width;
@@ -60,10 +63,10 @@ export default function Dashboard({
       <div id="ticket-dashboard-export" className="space-y-5 pb-10">
         <div
           className="rounded-3xl p-10 text-center shadow-sm"
-          style={{ backgroundColor: color }}
+          style={{ backgroundColor: themeColor }}
         >
-          <h1 className="text-4xl font-black text-slate-900">{title}</h1>
-          <p className="mt-2 text-slate-800 font-medium">
+          <h1 className="text-4xl font-black text-white">{title}</h1>
+          <p className="mt-2 text-white/90 font-medium">
             Ticket analysis by region, product, category, and monthly volume.
           </p>
         </div>
@@ -71,50 +74,21 @@ export default function Dashboard({
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {(analytics.kpis || []).map((kpi) => (
             <div key={kpi.title} className="dashboard-card p-6">
-              <p className="text-slate-500 text-sm font-semibold">
-                {kpi.title}
-              </p>
+              <p className="text-slate-500 text-sm font-semibold">{kpi.title}</p>
               <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
               <div
                 className="w-14 h-1.5 rounded-full mt-4"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: themeColor }}
               />
             </div>
           ))}
         </div>
 
         <div className="grid xl:grid-cols-2 gap-5">
-          <ChartCard
-            title="Tickets by Month"
-            data={analytics.monthly || []}
-            defaultType="bar"
-            defaultColor={color}
-          />
-
-          <ChartCard
-            title="Tickets by Region"
-            data={analytics.region || []}
-            defaultType="pie"
-            defaultColor={color}
-          />
-
-          <ChartCard
-            title="Tickets by Category"
-            data={analytics.category || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={80}
-          />
-
-          <ChartCard
-            title="Top 20 Products"
-            data={analytics.product || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={20}
-          />
+          <ChartCard title="Tickets by Month" data={analytics.monthly || []} defaultType="bar" defaultColor={themeColor} />
+          <ChartCard title="Tickets by Region" data={analytics.region || []} defaultType="pie" defaultColor={themeColor} />
+          <ChartCard title="Tickets by Category" data={analytics.category || []} defaultType="bar" defaultColor={themeColor} horizontal limit={80} />
+          <ChartCard title="Top 20 Products" data={analytics.product || []} defaultType="bar" defaultColor={themeColor} horizontal limit={20} />
 
           <div className="xl:col-span-2">
             <ChartCard
@@ -122,7 +96,7 @@ export default function Dashboard({
               subtitle="Complete product list from uploaded ticket sheet"
               data={analytics.productAll || []}
               defaultType="bar"
-              defaultColor={color}
+              defaultColor={themeColor}
               horizontal
               limit={500}
             />
@@ -147,7 +121,6 @@ function MiniTable({ title, data = [] }) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
       <div className="bg-slate-50 px-4 py-3 font-black">{title}</div>
-
       <div className="max-h-[520px] overflow-auto">
         <table className="soft-table">
           <thead>
@@ -157,7 +130,6 @@ function MiniTable({ title, data = [] }) {
               <th>Total</th>
             </tr>
           </thead>
-
           <tbody>
             {data.length ? (
               data.map((row, index) => (

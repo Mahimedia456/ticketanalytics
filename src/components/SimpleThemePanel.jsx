@@ -7,13 +7,13 @@ const themes = [
   { name: "Rose", color: "#fb7185" },
 ];
 
-export default function RmaThemePanel({ color, setColor }) {
+export default function SimpleThemePanel({ color, setColor }) {
   return (
     <div className="dashboard-card p-4 flex flex-wrap gap-5 items-center justify-between">
       <div>
-        <h2 className="font-black text-slate-900">RMA Design Controls</h2>
+        <h2 className="font-black text-slate-900">Design Controls</h2>
         <p className="text-xs text-slate-500">
-          RMA columns are detected automatically from the uploaded sheet.
+          Change dashboard color theme.
         </p>
       </div>
 

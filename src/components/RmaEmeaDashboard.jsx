@@ -3,12 +3,16 @@ import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
 
+const DARK = "#0f172a";
+
 export default function RmaEmeaDashboard({
   title = "RMA EMEA Dashboard",
   rows = [],
   analytics = {},
-  color = "#4fd1a5",
+  color = DARK,
 }) {
+  const themeColor = color || DARK;
+
   async function exportPDF() {
     const element = document.getElementById("rma-emea-dashboard-export");
     if (!element) return;
@@ -60,10 +64,10 @@ export default function RmaEmeaDashboard({
       <div id="rma-emea-dashboard-export" className="space-y-5 pb-10">
         <div
           className="rounded-3xl p-10 text-center shadow-sm"
-          style={{ backgroundColor: color }}
+          style={{ backgroundColor: themeColor }}
         >
-          <h1 className="text-4xl font-black text-slate-900">{title}</h1>
-          <p className="mt-2 text-slate-800 font-medium">
+          <h1 className="text-4xl font-black text-white">{title}</h1>
+          <p className="mt-2 text-white/90 font-medium">
             EMEA RMA analysis for returns, replacement sent, rush sent out,
             received stock, B-stock, D-stock, receive-only, pending and drive cases.
           </p>
@@ -72,113 +76,32 @@ export default function RmaEmeaDashboard({
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {(analytics.kpis || []).map((kpi) => (
             <div key={kpi.title} className="dashboard-card p-6">
-              <p className="text-slate-500 text-sm font-semibold">
-                {kpi.title}
-              </p>
+              <p className="text-slate-500 text-sm font-semibold">{kpi.title}</p>
               <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
               <div
                 className="w-14 h-1.5 rounded-full mt-4"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: themeColor }}
               />
             </div>
           ))}
         </div>
 
         <div className="grid xl:grid-cols-2 gap-5">
-          <ChartCard
-            title="Monthly RMA Returns"
-            data={analytics.monthlyReturns || []}
-            defaultType="bar"
-            defaultColor={color}
-          />
-
-          <ChartCard
-            title="RMA Flow Comparison"
-            data={analytics.flowComparison || []}
-            defaultType="bar"
-            defaultColor={color}
-          />
+          <ChartCard title="Monthly RMA Returns" data={analytics.monthlyReturns || []} defaultType="bar" defaultColor={themeColor} />
+          <ChartCard title="RMA Flow Comparison" data={analytics.flowComparison || []} defaultType="bar" defaultColor={themeColor} />
 
           <div className="xl:col-span-2">
-            <ChartCard
-              title="All Product RMA Returns"
-              data={analytics.productReturns || []}
-              defaultType="bar"
-              defaultColor={color}
-              horizontal
-              limit={80}
-            />
+            <ChartCard title="All Product RMA Returns" data={analytics.productReturns || []} defaultType="bar" defaultColor={themeColor} horizontal limit={80} />
           </div>
 
-          <ChartCard
-            title="Replacement / RMA Units by Product"
-            data={analytics.replacementUnits || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="Rush Sent Out by Product"
-            data={analytics.rushByProduct || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="Stock Units Received by Product"
-            data={analytics.receivedByProduct || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="Receive Only by Product"
-            data={analytics.receiveOnlyByProduct || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="B-Stock by Product"
-            data={analytics.bStockByProduct || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="D-Stock by Product"
-            data={analytics.dStockByProduct || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
-
-          <ChartCard
-            title="Pending Ship / Receive"
-            data={analytics.pendingComparison || []}
-            defaultType="bar"
-            defaultColor={color}
-          />
-
-          <ChartCard
-            title="Drive RMA Cases by Product"
-            data={analytics.driveCases || []}
-            defaultType="bar"
-            defaultColor={color}
-            horizontal
-            limit={50}
-          />
+          <ChartCard title="Replacement / RMA Units by Product" data={analytics.replacementUnits || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="Rush Sent Out by Product" data={analytics.rushByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="Stock Units Received by Product" data={analytics.receivedByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="Receive Only by Product" data={analytics.receiveOnlyByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="B-Stock by Product" data={analytics.bStockByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="D-Stock by Product" data={analytics.dStockByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
+          <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
+          <ChartCard title="Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
         </div>
 
         <div className="dashboard-card p-5">

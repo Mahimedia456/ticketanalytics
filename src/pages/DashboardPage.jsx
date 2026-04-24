@@ -3,6 +3,7 @@ import FileUpload from "../components/FileUpload";
 import SheetEditor from "../components/SheetEditor";
 import ThemePanel from "../components/ThemePanel";
 import RmaThemePanel from "../components/RmaThemePanel";
+import SimpleThemePanel from "../components/SimpleThemePanel";
 
 import Dashboard from "../components/Dashboard";
 import RmaEmeaDashboard from "../components/RmaEmeaDashboard";
@@ -21,6 +22,8 @@ import { buildGoodAnalytics } from "../utils/goodAnalytics";
 import { buildBadAnalytics } from "../utils/badAnalytics";
 import { buildComparisonAnalytics } from "../utils/comparisonAnalytics";
 
+const DEFAULT_COLOR = "#0f172a";
+
 export default function DashboardPage({
   pageTitle,
   storageKey,
@@ -28,7 +31,7 @@ export default function DashboardPage({
 }) {
   const [rows, setRows] = useState([]);
   const [view, setView] = useState("dashboard");
-  const [color, setColor] = useState("#4fd1a5");
+  const [color, setColor] = useState(DEFAULT_COLOR);
   const [mapping, setMapping] = useState({});
 
   const isTicketPage = pageType === "ticket";
@@ -38,11 +41,8 @@ export default function DashboardPage({
   const isGoodPage = pageType === "good-satisfaction";
   const isBadPage = pageType === "bad-satisfaction";
   const isComparisonPage = pageType === "comparison";
-  const isSatisfactionPage = isGoodPage || isBadPage;
 
   useEffect(() => {
-    if (isComparisonPage) return;
-
     const saved = localStorage.getItem(`dashboard:${storageKey}`);
 
     if (saved) {
@@ -50,12 +50,12 @@ export default function DashboardPage({
         const parsed = JSON.parse(saved);
         setRows(parsed.rows || []);
         setMapping(parsed.mapping || {});
-        setColor(parsed.color || "#4fd1a5");
+        setColor(parsed.color || DEFAULT_COLOR);
       } catch {
         localStorage.removeItem(`dashboard:${storageKey}`);
       }
     }
-  }, [storageKey, isComparisonPage]);
+  }, [storageKey]);
 
   useEffect(() => {
     if (isComparisonPage) return;
@@ -129,7 +129,9 @@ export default function DashboardPage({
           <button
             onClick={() => setView("dashboard")}
             className={`btn ${
-              view === "dashboard" ? "bg-slate-900 text-white" : "bg-slate-100"
+              view === "dashboard"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100"
             }`}
           >
             Dashboard
@@ -139,7 +141,9 @@ export default function DashboardPage({
             <button
               onClick={() => setView("sheet")}
               className={`btn ${
-                view === "sheet" ? "bg-slate-900 text-white" : "bg-slate-100"
+                view === "sheet"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100"
               }`}
             >
               Sheet
@@ -158,20 +162,18 @@ export default function DashboardPage({
         <FileUpload onData={handleData} />
       ) : (
         <>
-          {!isComparisonPage && !isSatisfactionPage && (
-            <>
-              {isRmaPage ? (
-                <RmaThemePanel color={color} setColor={setColor} />
-              ) : (
-                <ThemePanel
-                  color={color}
-                  setColor={setColor}
-                  analytics={ticketAnalytics}
-                  mapping={mapping}
-                  setMapping={setMapping}
-                />
-              )}
-            </>
+          {isTicketPage ? (
+            <ThemePanel
+              color={color}
+              setColor={setColor}
+              analytics={ticketAnalytics}
+              mapping={mapping}
+              setMapping={setMapping}
+            />
+          ) : isRmaPage ? (
+            <RmaThemePanel color={color} setColor={setColor} />
+          ) : (
+            <SimpleThemePanel color={color} setColor={setColor} />
           )}
 
           {view === "sheet" && !isComparisonPage ? (
@@ -200,11 +202,13 @@ export default function DashboardPage({
             <BadSatisfactionDashboard
               title={pageTitle}
               analytics={badAnalytics}
+              color={color}
             />
           ) : isComparisonPage ? (
             <ComparisonDashboard
               title={pageTitle}
               analytics={comparisonAnalytics}
+              color={color}
             />
           ) : (
             <Dashboard

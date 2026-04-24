@@ -1,13 +1,19 @@
 const themes = [
+  { name: "Dark", color: "#0f172a" },
   { name: "Mint", color: "#4fd1a5" },
   { name: "Ocean", color: "#38bdf8" },
   { name: "Purple", color: "#818cf8" },
   { name: "Amber", color: "#f59e0b" },
   { name: "Rose", color: "#fb7185" },
-  { name: "Dark", color: "#0f172a" },
 ];
 
-export default function ThemePanel({ color, setColor, analytics, mapping, setMapping }) {
+export default function ThemePanel({
+  color,
+  setColor,
+  analytics,
+  mapping,
+  setMapping,
+}) {
   const columns = analytics.availableColumns || [];
 
   function SelectMap({ label, value, field }) {
@@ -16,12 +22,16 @@ export default function ThemePanel({ color, setColor, analytics, mapping, setMap
         <label className="text-xs font-bold block mb-1">{label}</label>
         <select
           value={value || ""}
-          onChange={(e) => setMapping((prev) => ({ ...prev, [field]: e.target.value }))}
+          onChange={(e) =>
+            setMapping((prev) => ({ ...prev, [field]: e.target.value }))
+          }
           className="input min-w-44"
         >
           <option value="">Select column</option>
           {columns.map((col) => (
-            <option key={col} value={col}>{col}</option>
+            <option key={col} value={col}>
+              {col}
+            </option>
           ))}
         </select>
       </div>
