@@ -1,140 +1,182 @@
-import { useEffect, useMemo, useState } from "react";
-import FileUpload from "../components/FileUpload";
-import SheetEditor from "../components/SheetEditor";
-import ThemePanel from "../components/ThemePanel";
-import RmaThemePanel from "../components/RmaThemePanel";
-import Dashboard from "../components/Dashboard";
-import RmaEmeaDashboard from "../components/RmaEmeaDashboard";
-import RmaUsDashboard from "../components/RmaUsDashboard";
-import { autoDetectColumns, buildAnalytics } from "../utils/analytics";
-import { buildRmaEmeaAnalytics } from "../utils/rmaEmeaAnalytics";
-import { buildRmaUsAnalytics } from "../utils/rmaUsAnalytics";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import ChartCard from "./ChartCard";
+import { exportDashboardExcel } from "../utils/exportExcel";
 
-export default function DashboardPage({ pageTitle, storageKey, pageType = "ticket" }) {
-  const [rows, setRows] = useState([]);
-  const [view, setView] = useState("dashboard");
-  const [color, setColor] = useState("#4fd1a5");
-  const [mapping, setMapping] = useState({});
+export default function Dashboard({
+  title = "Ticket Analysis",
+  rows = [],
+  analytics = {},
+  color = "#4fd1a5",
+}) {
+  async function exportPDF() {
+    const element = document.getElementById("ticket-dashboard-export");
+    if (!element) return;
 
-  const isRmaEmeaPage = pageType === "rma-emea";
-  const isRmaUsPage = pageType === "rma-us";
-  const isRmaPage = isRmaEmeaPage || isRmaUsPage;
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      backgroundColor: "#f4f7fb",
+      useCORS: true,
+    });
 
-  useEffect(() => {
-    const saved = localStorage.getItem(`dashboard:${storageKey}`);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setRows(parsed.rows || []);
-      setMapping(parsed.mapping || {});
-      setColor(parsed.color || "#4fd1a5");
+    const img = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(img, "PNG", 0, position, pageWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(img, "PNG", 0, position, pageWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
-  }, [storageKey]);
 
-  useEffect(() => {
-    localStorage.setItem(
-      `dashboard:${storageKey}`,
-      JSON.stringify({ rows, mapping, color })
-    );
-  }, [rows, mapping, color, storageKey]);
-
-  function handleData(data) {
-    setRows(data);
-    setMapping(autoDetectColumns(data));
+    pdf.save(`${title}.pdf`);
   }
 
-  const ticketAnalytics = useMemo(
-    () => buildAnalytics(rows, mapping),
-    [rows, mapping]
-  );
-
-  const rmaEmeaAnalytics = useMemo(
-    () => buildRmaEmeaAnalytics(rows),
-    [rows]
-  );
-
-  const rmaUsAnalytics = useMemo(
-    () => buildRmaUsAnalytics(rows),
-    [rows]
-  );
-
   return (
-    <div className="space-y-6">
-      <div className="dashboard-card p-5 flex flex-wrap justify-between gap-4 items-center">
-        <div>
-          <h2 className="text-2xl font-black">{pageTitle}</h2>
-          <p className="text-sm text-slate-500">Upload separate sheet for this page.</p>
-        </div>
+    <div className="w-full">
+      <div className="flex justify-end gap-3 mb-4">
+        <button onClick={exportPDF} className="btn bg-slate-900 text-white">
+          Export PDF
+        </button>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("dashboard")}
-            className={`btn ${view === "dashboard" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
-          >
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => setView("sheet")}
-            className={`btn ${view === "sheet" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
-          >
-            Sheet
-          </button>
-
-          <button
-            onClick={() => {
-              setRows([]);
-              setMapping({});
-              localStorage.removeItem(`dashboard:${storageKey}`);
-            }}
-            className="btn bg-red-50 text-red-600"
-          >
-            Clear
-          </button>
-        </div>
+        <button
+          onClick={() => exportDashboardExcel({ rows, analytics, title })}
+          className="btn bg-emerald-500 text-white"
+        >
+          Export Excel
+        </button>
       </div>
 
-      {!rows.length ? (
-        <FileUpload onData={handleData} />
-      ) : (
-        <>
-          {isRmaPage ? (
-            <RmaThemePanel color={color} setColor={setColor} />
-          ) : (
-            <ThemePanel
-              color={color}
-              setColor={setColor}
-              analytics={ticketAnalytics}
-              mapping={mapping}
-              setMapping={setMapping}
-            />
-          )}
+      <div id="ticket-dashboard-export" className="space-y-5 pb-10">
+        <div
+          className="rounded-3xl p-10 text-center shadow-sm"
+          style={{ backgroundColor: color }}
+        >
+          <h1 className="text-4xl font-black text-slate-900">{title}</h1>
+          <p className="mt-2 text-slate-800 font-medium">
+            Ticket analysis by region, product, category, and monthly volume.
+          </p>
+        </div>
 
-          {view === "sheet" ? (
-            <SheetEditor rows={rows} setRows={setRows} />
-          ) : isRmaEmeaPage ? (
-            <RmaEmeaDashboard
-              title={pageTitle}
-              rows={rows}
-              analytics={rmaEmeaAnalytics}
-              color={color}
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {(analytics.kpis || []).map((kpi) => (
+            <div key={kpi.title} className="dashboard-card p-6">
+              <p className="text-slate-500 text-sm font-semibold">
+                {kpi.title}
+              </p>
+              <h3 className="text-4xl font-black mt-2">{kpi.value}</h3>
+              <div
+                className="w-14 h-1.5 rounded-full mt-4"
+                style={{ backgroundColor: color }}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid xl:grid-cols-2 gap-5">
+          <ChartCard
+            title="Tickets by Month"
+            data={analytics.monthly || []}
+            defaultType="bar"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="Tickets by Region"
+            data={analytics.region || []}
+            defaultType="pie"
+            defaultColor={color}
+          />
+
+          <ChartCard
+            title="Tickets by Category"
+            data={analytics.category || []}
+            defaultType="bar"
+            defaultColor={color}
+            horizontal
+            limit={80}
+          />
+
+          <ChartCard
+            title="Top 20 Products"
+            data={analytics.product || []}
+            defaultType="bar"
+            defaultColor={color}
+            horizontal
+            limit={20}
+          />
+
+          <div className="xl:col-span-2">
+            <ChartCard
+              title="All Products"
+              subtitle="Complete product list from uploaded ticket sheet"
+              data={analytics.productAll || []}
+              defaultType="bar"
+              defaultColor={color}
+              horizontal
+              limit={500}
             />
-          ) : isRmaUsPage ? (
-            <RmaUsDashboard
-              title={pageTitle}
-              rows={rows}
-              analytics={rmaUsAnalytics}
-              color={color}
-            />
-          ) : (
-            <Dashboard
-              title={pageTitle}
-              rows={rows}
-              analytics={ticketAnalytics}
-              color={color}
-            />
-          )}
-        </>
-      )}
+          </div>
+        </div>
+
+        <div className="dashboard-card p-5">
+          <h3 className="font-black text-lg mb-4">Ticket Summary Tables</h3>
+
+          <div className="grid xl:grid-cols-3 gap-5">
+            <MiniTable title="Regions" data={analytics.region || []} />
+            <MiniTable title="Categories" data={analytics.category || []} />
+            <MiniTable title="All Products" data={analytics.productAll || []} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniTable({ title, data = [] }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
+      <div className="bg-slate-50 px-4 py-3 font-black">{title}</div>
+
+      <div className="max-h-[520px] overflow-auto">
+        <table className="soft-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.length ? (
+              data.map((row, index) => (
+                <tr key={`${title}-${index}`}>
+                  <td>{index + 1}</td>
+                  <td>{row.name}</td>
+                  <td className="font-bold">{row.count}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="3" className="text-center text-slate-400 py-6">
+                  No data found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

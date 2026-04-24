@@ -6,11 +6,18 @@ import RmaThemePanel from "../components/RmaThemePanel";
 import Dashboard from "../components/Dashboard";
 import RmaEmeaDashboard from "../components/RmaEmeaDashboard";
 import RmaUsDashboard from "../components/RmaUsDashboard";
-import { autoDetectColumns, buildAnalytics } from "../utils/analytics";
+import {
+  autoDetectTicketColumns,
+  buildTicketAnalytics,
+} from "../utils/ticketAnalytics";
 import { buildRmaEmeaAnalytics } from "../utils/rmaEmeaAnalytics";
 import { buildRmaUsAnalytics } from "../utils/rmaUsAnalytics";
 
-export default function DashboardPage({ pageTitle, storageKey, pageType = "ticket" }) {
+export default function DashboardPage({
+  pageTitle,
+  storageKey,
+  pageType = "ticket",
+}) {
   const [rows, setRows] = useState([]);
   const [view, setView] = useState("dashboard");
   const [color, setColor] = useState("#4fd1a5");
@@ -22,11 +29,16 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
 
   useEffect(() => {
     const saved = localStorage.getItem(`dashboard:${storageKey}`);
+
     if (saved) {
-      const parsed = JSON.parse(saved);
-      setRows(parsed.rows || []);
-      setMapping(parsed.mapping || {});
-      setColor(parsed.color || "#4fd1a5");
+      try {
+        const parsed = JSON.parse(saved);
+        setRows(parsed.rows || []);
+        setMapping(parsed.mapping || {});
+        setColor(parsed.color || "#4fd1a5");
+      } catch {
+        localStorage.removeItem(`dashboard:${storageKey}`);
+      }
     }
   }, [storageKey]);
 
@@ -39,12 +51,31 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
 
   function handleData(data) {
     setRows(data);
-    setMapping(autoDetectColumns(data));
+    setMapping(isRmaPage ? {} : autoDetectTicketColumns(data));
+    setView("dashboard");
   }
 
-  const ticketAnalytics = useMemo(() => buildAnalytics(rows, mapping), [rows, mapping]);
-  const rmaEmeaAnalytics = useMemo(() => buildRmaEmeaAnalytics(rows), [rows]);
-  const rmaUsAnalytics = useMemo(() => buildRmaUsAnalytics(rows), [rows]);
+  function clearPage() {
+    setRows([]);
+    setMapping({});
+    setView("dashboard");
+    localStorage.removeItem(`dashboard:${storageKey}`);
+  }
+
+  const ticketAnalytics = useMemo(
+    () => buildTicketAnalytics(rows, mapping),
+    [rows, mapping]
+  );
+
+  const rmaEmeaAnalytics = useMemo(
+    () => buildRmaEmeaAnalytics(rows),
+    [rows]
+  );
+
+  const rmaUsAnalytics = useMemo(
+    () => buildRmaUsAnalytics(rows),
+    [rows]
+  );
 
   return (
     <div className="space-y-6">
@@ -59,26 +90,27 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
         <div className="flex gap-2">
           <button
             onClick={() => setView("dashboard")}
-            className={`btn ${view === "dashboard" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
+            className={`btn ${
+              view === "dashboard"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100"
+            }`}
           >
             Dashboard
           </button>
 
           <button
             onClick={() => setView("sheet")}
-            className={`btn ${view === "sheet" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
+            className={`btn ${
+              view === "sheet"
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100"
+            }`}
           >
             Sheet
           </button>
 
-          <button
-            onClick={() => {
-              setRows([]);
-              setMapping({});
-              localStorage.removeItem(`dashboard:${storageKey}`);
-            }}
-            className="btn bg-red-50 text-red-600"
-          >
+          <button onClick={clearPage} className="btn bg-red-50 text-red-600">
             Clear
           </button>
         </div>
