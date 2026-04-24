@@ -42,21 +42,34 @@ export function buildGoodAnalytics(inputRows = []) {
     "good satisfaction comment",
     "satisfaction comments",
     "comment",
+    "comments",
+  ]);
+  const notesCol = findColumn(columns, [
+    "reason notes",
+    "reason",
+    "notes",
+    "note",
+    "reason/comments",
+    "reason comments",
   ]);
 
   const withCommentCol = findColumn(columns, [
     "good satisfaction tickets w comment",
     "goodsatisfactionticketswcomment",
     "w comment",
+    "with comment",
   ]);
 
   const totalCol = findColumn(columns, [
     "good satisfaction tickets",
     "goodsatisfactiontickets",
+    "total tickets",
+    "tickets",
   ]);
 
   const normalizedRows = rows.map((row) => {
     const comment = cleanText(row[commentCol]);
+    const reasonNotes = cleanText(row[notesCol]);
     const total = totalCol ? cleanNumber(row[totalCol]) || 1 : 1;
     const withComment = withCommentCol
       ? cleanNumber(row[withCommentCol])
@@ -67,6 +80,7 @@ export function buildGoodAnalytics(inputRows = []) {
     return {
       ticketId: cleanText(row[ticketCol]),
       comment,
+      reasonNotes,
       total,
       withComment,
       withoutComment: withComment ? 0 : 1,

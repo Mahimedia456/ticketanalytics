@@ -2,6 +2,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
+import { exportDashboardPDF } from "../utils/exportPdf";
 
 export default function RmaDashboard({
   title = "RMA Dashboard",

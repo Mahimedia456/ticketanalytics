@@ -2,6 +2,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import ChartCard from "./ChartCard";
 import { exportDashboardExcel } from "../utils/exportExcel";
+import { exportDashboardPDF } from "../utils/exportPdf";
 
 const DARK = "#0f172a";
 
@@ -13,38 +14,9 @@ export default function RmaEmeaDashboard({
 }) {
   const themeColor = color || DARK;
 
-  async function exportPDF() {
-    const element = document.getElementById("rma-emea-dashboard-export");
-    if (!element) return;
-
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      backgroundColor: "#f4f7fb",
-      useCORS: true,
-    });
-
-    const img = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(img, "PNG", 0, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(img, "PNG", 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    pdf.save(`${title}.pdf`);
-  }
+ function exportPDF() {
+  exportDashboardPDF("rma-emea-dashboard-export", title);
+}
 
   return (
     <div className="w-full">

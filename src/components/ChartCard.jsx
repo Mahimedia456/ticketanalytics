@@ -16,6 +16,19 @@ import {
 
 const DARK = "#0f172a";
 
+const DEFAULT_PIE_COLORS = [
+  "#0f172a",
+  "#38bdf8",
+  "#4fd1a5",
+  "#818cf8",
+  "#f59e0b",
+  "#fb7185",
+  "#64748b",
+  "#14b8a6",
+  "#a855f7",
+  "#ef4444",
+];
+
 export default function ChartCard({
   title,
   subtitle,
@@ -29,24 +42,29 @@ export default function ChartCard({
   horizontal = false,
   limit = 20,
 }) {
-  const [type, setType] = useState(defaultType);
+  const initialType = horizontal ? "horizontalBar" : defaultType;
+
+  const [type, setType] = useState(initialType);
   const [color, setColor] = useState(defaultColor || DARK);
   const [textColor, setTextColor] = useState(defaultTextColor || DARK);
+  const [pieColors, setPieColors] = useState(DEFAULT_PIE_COLORS);
 
   const chartData = data.slice(0, limit);
-  const chartHeight = horizontal ? Math.max(420, chartData.length * 34) : 320;
+  const isHorizontal = type === "horizontalBar";
+  const chartHeight = isHorizontal
+    ? Math.max(420, chartData.length * 34)
+    : 320;
 
-  const colors = [
-    color || DARK,
-    "#1e293b",
-    "#334155",
-    "#475569",
-    "#64748b",
-    "#94a3b8",
-  ];
+  function updatePieColor(index, value) {
+    setPieColors((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }
 
   return (
-    <div className="dashboard-card overflow-hidden">
+    <div className="dashboard-card overflow-hidden pdf-section">
       <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between gap-3">
         <div>
           <h3 className="font-black" style={{ color: textColor }}>
@@ -60,19 +78,41 @@ export default function ChartCard({
           )}
         </div>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap justify-end">
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="input"
           >
             <option value="bar">Bar</option>
+            <option value="horizontalBar">Horizontal Bar</option>
             <option value="line">Line</option>
             <option value="pie">Pie</option>
           </select>
 
-          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-          <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} />
+          {type === "pie" ? (
+            chartData.map((_, index) => (
+              <input
+                key={`pie-color-${index}`}
+                type="color"
+                value={pieColors[index] || DARK}
+                onChange={(e) => updatePieColor(index, e.target.value)}
+                title={`Pie color ${index + 1}`}
+              />
+            ))
+          ) : (
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+            />
+          )}
+
+          <input
+            type="color"
+            value={textColor}
+            onChange={(e) => setTextColor(e.target.value)}
+          />
         </div>
       </div>
 
@@ -81,8 +121,8 @@ export default function ChartCard({
           No data found. Select correct column from Design & Column Controls.
         </div>
       ) : (
-        <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4 p-5">
-          <div style={{ height: chartHeight }} className="overflow-auto">
+        <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4 p-5 pdf-expand">
+          <div style={{ height: chartHeight }} className="pdf-expand">
             <ResponsiveContainer width="100%" height="100%">
               {type === "line" ? (
                 <LineChart data={chartData}>
@@ -108,17 +148,27 @@ export default function ChartCard({
                     outerRadius={110}
                     innerRadius={55}
                     paddingAngle={2}
+                    label={({ name, percent }) =>
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
+                    labelLine={false}
                   >
-                    {chartData.map((_, i) => (
-                      <Cell key={i} fill={colors[i % colors.length]} />
+                    {chartData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          pieColors[index] ||
+                          DEFAULT_PIE_COLORS[index % DEFAULT_PIE_COLORS.length]
+                        }
+                      />
                     ))}
                   </Pie>
                 </PieChart>
-              ) : horizontal ? (
+              ) : isHorizontal ? (
                 <BarChart
                   data={chartData}
                   layout="vertical"
-                  margin={{ top: 10, right: 30, left: 160, bottom: 10 }}
+                  margin={{ top: 10, right: 35, left: 170, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" fontSize={11} />
@@ -126,7 +176,7 @@ export default function ChartCard({
                     type="category"
                     dataKey={xKey}
                     fontSize={11}
-                    width={155}
+                    width={165}
                     interval={0}
                   />
                   <Tooltip />
@@ -152,7 +202,7 @@ export default function ChartCard({
           </div>
 
           {showTable && (
-            <div className="overflow-auto rounded-xl border border-slate-100 max-h-[520px]">
+            <div className="rounded-xl border border-slate-100 pdf-expand">
               <table className="soft-table">
                 <thead>
                   <tr>
