@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #f4f7fb;
+  color: #0f172a;
+}
+
+.dashboard-card {
+  @apply bg-white rounded-2xl shadow-sm border border-slate-200;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-xl font-semibold text-sm transition;
+}
+
+.input {
+  @apply border border-slate-300 rounded-xl px-3 py-2 text-sm bg-white;
+}
+
+.soft-table {
+  @apply w-full text-sm border-collapse;
+}
+
+.soft-table th {
+  @apply bg-slate-50 text-slate-600 font-bold text-left px-3 py-2 border-b;
+}
+
+.soft-table td {
+  @apply px-3 py-2 border-b border-slate-100 text-slate-700;
+}
