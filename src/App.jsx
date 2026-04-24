@@ -3,11 +3,12 @@ import AppLayout from "./layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 
 const pages = [
-  { path: "/ticket-analysis", title: "Ticket Analysis", type: "ticket" },
-  { path: "/returns-emea-jan", title: "Returns EMEA Jan", type: "rma-emea" },
-  { path: "/returns-usa-jan", title: "Returns USA Jan", type: "ticket" },
+  { path: "/ticket-dashboard", title: "Ticket Dashboard", type: "ticket" },
+  { path: "/rma-emea-dashboard", title: "RMA EMEA Dashboard", type: "rma-emea" },
+  { path: "/rma-us-dashboard", title: "RMA US Dashboard", type: "rma-us" },
   { path: "/good-satisfaction", title: "Good Satisfaction", type: "ticket" },
   { path: "/bad-satisfaction", title: "Bad Satisfaction", type: "ticket" },
+  { path: "/comparison", title: "Both Comparison", type: "ticket" },
 ];
 
 export default function App() {
@@ -15,7 +16,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout pages={pages} />}>
-          <Route path="/" element={<Navigate to="/ticket-analysis" replace />} />
+          <Route path="/" element={<Navigate to="/ticket-dashboard" replace />} />
 
           {pages.map((page) => (
             <Route

@@ -5,18 +5,14 @@ function cleanNumber(value) {
 }
 
 function cleanText(value) {
-  return String(value || "").trim();
+  return String(value || "").trim().replace(/^"+|"+$/g, "").trim();
 }
 
 function normalizeKey(key = "") {
   return String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function getValue(row, col) {
-  return col ? row[col] : "";
-}
-
-function findColumn(columns, names, occurrence = 1) {
+function findColumn(columns, names) {
   const normalized = columns.map((col) => ({
     original: col,
     key: normalizeKey(col),
@@ -24,8 +20,8 @@ function findColumn(columns, names, occurrence = 1) {
 
   for (const name of names) {
     const target = normalizeKey(name);
-    const matches = normalized.filter((col) => col.key.includes(target));
-    if (matches[occurrence - 1]) return matches[occurrence - 1].original;
+    const found = normalized.find((col) => col.key.includes(target));
+    if (found) return found.original;
   }
 
   return "";
@@ -36,7 +32,7 @@ function looksLikeHeaderRow(row) {
   return (
     values.includes("month") &&
     values.some((v) => v.includes("product")) &&
-    values.some((v) => v.includes("actualrmareturns") || v.includes("returns"))
+    values.some((v) => v.includes("actualrmareturns"))
   );
 }
 
@@ -65,21 +61,9 @@ function promoteHeaderRow(inputRows) {
 
 function validRows(rows, monthCol, productCol) {
   return rows.filter((row) => {
-    const month = cleanText(getValue(row, monthCol));
-    const product = cleanText(getValue(row, productCol));
-
-    if (!month || !product) return false;
-
-    const m = month.toLowerCase();
-    const p = product.toLowerCase();
-
-    return (
-      !m.includes("rush sent") &&
-      !m.includes("actual rma") &&
-      !m.includes("receive only") &&
-      !m.includes("pending") &&
-      !p.includes("units that were")
-    );
+    const month = cleanText(row[monthCol]);
+    const product = cleanText(row[productCol]);
+    return month && product && !month.toLowerCase().includes("rush sent");
   });
 }
 
@@ -104,15 +88,15 @@ function sumBy(rows, groupCol, valueCol) {
     .sort((a, b) => b.count - a.count);
 }
 
-function sumBySku(rows, skuCol, productCol, valueCol) {
-  if (!skuCol || !productCol || !valueCol) return [];
+function sumBySku(rows, productCol, descCol, valueCol) {
+  if (!productCol || !descCol || !valueCol) return [];
 
   const map = {};
 
   rows.forEach((row) => {
-    const sku = cleanText(row[skuCol]);
-    const product = cleanText(row[productCol]);
-    const name = sku ? `${sku} — ${product}` : product || "Unknown";
+    const sku = cleanText(row[productCol]);
+    const desc = cleanText(row[descCol]);
+    const name = `${sku} — ${desc}`;
     map[name] = (map[name] || 0) + cleanNumber(row[valueCol]);
   });
 
@@ -122,7 +106,7 @@ function sumBySku(rows, skuCol, productCol, valueCol) {
     .sort((a, b) => b.count - a.count);
 }
 
-export function buildRmaEmeaAnalytics(inputRows = []) {
+export function buildRmaUsAnalytics(inputRows = []) {
   const rowsWithHeaders = promoteHeaderRow(inputRows);
 
   if (!rowsWithHeaders.length) {
@@ -132,12 +116,12 @@ export function buildRmaEmeaAnalytics(inputRows = []) {
       monthlyReturns: [],
       productReturns: [],
       skuReturns: [],
-      receivedByProduct: [],
-      rushByProduct: [],
-      replacementUnits: [],
-      bStockByProduct: [],
-      dStockByProduct: [],
-      receiveOnlyByProduct: [],
+      rushSent: [],
+      rmaUnits: [],
+      rushBStock: [],
+      receiveDStock: [],
+      receiveBStock: [],
+      receiveAStock: [],
       pendingComparison: [],
       driveCases: [],
       flowComparison: [],
@@ -147,64 +131,52 @@ export function buildRmaEmeaAnalytics(inputRows = []) {
   const columns = Object.keys(rowsWithHeaders[0]);
 
   const monthCol = findColumn(columns, ["month"]);
-  const skuCol = findColumn(columns, ["product sku", "productsku", "sku"]);
   const productCol = findColumn(columns, ["product"]);
-  const returnsCol = findColumn(columns, [
-    "actual rma returns replacement",
-    "actual rma returns",
-    "rma returns",
-  ]);
-  const receivedCol = findColumn(columns, [
-    "d stock units received",
-    "stock units received",
-    "units received",
-  ]);
-  const rushCol = findColumn(columns, ["rush sent out", "rush"]);
+  const descCol = findColumn(columns, ["description"]);
+  const returnsCol = findColumn(columns, ["actual rma returns replacement", "actual rma returns"]);
+  const receivedCol = findColumn(columns, ["d stock units received", "stock units received"]);
+  const rushCol = findColumn(columns, ["rush sent out"]);
   const rmaUnitsCol = findColumn(columns, ["rma units"]);
-  const replacementBStockCol = findColumn(columns, ["b stock"], 1);
-  const dStockCol = findColumn(columns, ["d stock"]);
-  const receiveOnlyBStockCol = findColumn(columns, ["b stock"], 2);
-  const aStockCol = findColumn(columns, ["a stock"]);
+  const rushBStockCol = findColumn(columns, ["rush sent b stock"]);
+  const receiveDStockCol = findColumn(columns, ["receive d stock"]);
+  const receiveBStockCol = findColumn(columns, ["receive b stock"]);
+  const receiveAStockCol = findColumn(columns, ["receive a stock"]);
   const pendingShipCol = findColumn(columns, ["pending to ship"]);
   const pendingReceiveCol = findColumn(columns, ["pending to receive"]);
-  const driveCasesCol = findColumn(columns, [
-    "google drive rma case total",
-    "drive rma case",
-    "rma case total",
-  ]);
+  const driveCasesCol = findColumn(columns, ["google drive rma case total", "drive rma case"]);
 
   const rows = validRows(rowsWithHeaders, monthCol, productCol);
 
   const totalReturns = sumColumn(rows, returnsCol);
-  const totalReceived = sumColumn(rows, receivedCol);
+  const totalReceivedStock = sumColumn(rows, receivedCol);
   const totalRush = sumColumn(rows, rushCol);
-  const totalReplacement = sumColumn(rows, rmaUnitsCol);
-  const totalReplacementBStock = sumColumn(rows, replacementBStockCol);
-  const totalDStock = sumColumn(rows, dStockCol);
-  const totalReceiveOnlyB = sumColumn(rows, receiveOnlyBStockCol);
-  const totalAStock = sumColumn(rows, aStockCol);
+  const totalRmaUnits = sumColumn(rows, rmaUnitsCol);
+  const totalRushBStock = sumColumn(rows, rushBStockCol);
+  const totalReceiveDStock = sumColumn(rows, receiveDStockCol);
+  const totalReceiveBStock = sumColumn(rows, receiveBStockCol);
+  const totalReceiveAStock = sumColumn(rows, receiveAStockCol);
   const totalPendingShip = sumColumn(rows, pendingShipCol);
   const totalPendingReceive = sumColumn(rows, pendingReceiveCol);
   const totalDriveCases = sumColumn(rows, driveCasesCol);
 
-  const totalReceiveOnly = totalReceiveOnlyB + totalAStock;
-  const totalSentOut = totalRush + totalReplacement + totalReplacementBStock;
+  const totalSentOut = totalRush + totalRmaUnits + totalRushBStock;
+  const totalReceived =
+    totalReceivedStock + totalReceiveDStock + totalReceiveBStock + totalReceiveAStock;
   const totalPending = totalPendingShip + totalPendingReceive;
-  const totalReceivedAll = totalReceived + totalDStock + totalReceiveOnly;
 
   return {
     columns: {
       monthCol,
-      skuCol,
       productCol,
+      descCol,
       returnsCol,
       receivedCol,
       rushCol,
       rmaUnitsCol,
-      replacementBStockCol,
-      dStockCol,
-      receiveOnlyBStockCol,
-      aStockCol,
+      rushBStockCol,
+      receiveDStockCol,
+      receiveBStockCol,
+      receiveAStockCol,
       pendingShipCol,
       pendingReceiveCol,
       driveCasesCol,
@@ -214,24 +186,23 @@ export function buildRmaEmeaAnalytics(inputRows = []) {
       { title: "Google Drive RMA Cases", value: totalDriveCases },
       { title: "Actual RMA Returns", value: totalReturns },
       { title: "Total Sent Out", value: totalSentOut },
-      { title: "Total Received", value: totalReceivedAll },
+      { title: "Total Received", value: totalReceived },
       { title: "Rush Sent Out", value: totalRush },
-      { title: "Replacement / RMA Units", value: totalReplacement },
-      { title: "D-Stock Units Received", value: totalDStock },
+      { title: "RMA Units", value: totalRmaUnits },
+      { title: "Rush Sent B-Stock", value: totalRushBStock },
       { title: "Total Pending", value: totalPending },
     ],
 
     monthlyReturns: sumBy(rows, monthCol, returnsCol),
-    productReturns: sumBy(rows, productCol, returnsCol),
-    skuReturns: sumBySku(rows, skuCol, productCol, returnsCol),
-    receivedByProduct: sumBy(rows, productCol, receivedCol),
-    rushByProduct: sumBy(rows, productCol, rushCol),
-    replacementUnits: sumBy(rows, productCol, rmaUnitsCol),
-    bStockByProduct: sumBy(rows, productCol, replacementBStockCol),
-    dStockByProduct: sumBy(rows, productCol, dStockCol),
-    receiveOnlyByProduct: sumBy(rows, productCol, receiveOnlyBStockCol),
-    aStockByProduct: sumBy(rows, productCol, aStockCol),
-    driveCases: sumBy(rows, productCol, driveCasesCol),
+    productReturns: sumBy(rows, descCol, returnsCol),
+    skuReturns: sumBySku(rows, productCol, descCol, returnsCol),
+    rushSent: sumBy(rows, descCol, rushCol),
+    rmaUnits: sumBy(rows, descCol, rmaUnitsCol),
+    rushBStock: sumBy(rows, descCol, rushBStockCol),
+    receiveDStock: sumBy(rows, descCol, receiveDStockCol),
+    receiveBStock: sumBy(rows, descCol, receiveBStockCol),
+    receiveAStock: sumBy(rows, descCol, receiveAStockCol),
+    driveCases: sumBy(rows, descCol, driveCasesCol),
 
     pendingComparison: [
       { name: "Pending to Ship", count: totalPendingShip },
@@ -240,13 +211,13 @@ export function buildRmaEmeaAnalytics(inputRows = []) {
 
     flowComparison: [
       { name: "Actual RMA Returns", count: totalReturns },
-      { name: "D Stock Units Received", count: totalReceived },
+      { name: "D Stock Units Received", count: totalReceivedStock },
       { name: "Rush Sent Out", count: totalRush },
-      { name: "RMA Units", count: totalReplacement },
-      { name: "Replacement B-Stock", count: totalReplacementBStock },
-      { name: "D-Stock", count: totalDStock },
-      { name: "Receive Only B-Stock", count: totalReceiveOnlyB },
-      { name: "A-Stock", count: totalAStock },
+      { name: "RMA Units", count: totalRmaUnits },
+      { name: "Rush Sent B-Stock", count: totalRushBStock },
+      { name: "Receive D-Stock", count: totalReceiveDStock },
+      { name: "Receive B-Stock", count: totalReceiveBStock },
+      { name: "Receive A-Stock", count: totalReceiveAStock },
       { name: "Pending to Ship", count: totalPendingShip },
       { name: "Pending to Receive", count: totalPendingReceive },
       { name: "Google Drive RMA Cases", count: totalDriveCases },

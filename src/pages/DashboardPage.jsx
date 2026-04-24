@@ -5,8 +5,10 @@ import ThemePanel from "../components/ThemePanel";
 import RmaThemePanel from "../components/RmaThemePanel";
 import Dashboard from "../components/Dashboard";
 import RmaEmeaDashboard from "../components/RmaEmeaDashboard";
+import RmaUsDashboard from "../components/RmaUsDashboard";
 import { autoDetectColumns, buildAnalytics } from "../utils/analytics";
 import { buildRmaEmeaAnalytics } from "../utils/rmaEmeaAnalytics";
+import { buildRmaUsAnalytics } from "../utils/rmaUsAnalytics";
 
 export default function DashboardPage({ pageTitle, storageKey, pageType = "ticket" }) {
   const [rows, setRows] = useState([]);
@@ -15,6 +17,8 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
   const [mapping, setMapping] = useState({});
 
   const isRmaEmeaPage = pageType === "rma-emea";
+  const isRmaUsPage = pageType === "rma-us";
+  const isRmaPage = isRmaEmeaPage || isRmaUsPage;
 
   useEffect(() => {
     const saved = localStorage.getItem(`dashboard:${storageKey}`);
@@ -38,15 +42,9 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
     setMapping(autoDetectColumns(data));
   }
 
-  const ticketAnalytics = useMemo(
-    () => buildAnalytics(rows, mapping),
-    [rows, mapping]
-  );
-
-  const rmaEmeaAnalytics = useMemo(
-    () => buildRmaEmeaAnalytics(rows),
-    [rows]
-  );
+  const ticketAnalytics = useMemo(() => buildAnalytics(rows, mapping), [rows, mapping]);
+  const rmaEmeaAnalytics = useMemo(() => buildRmaEmeaAnalytics(rows), [rows]);
+  const rmaUsAnalytics = useMemo(() => buildRmaUsAnalytics(rows), [rows]);
 
   return (
     <div className="space-y-6">
@@ -61,18 +59,14 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
         <div className="flex gap-2">
           <button
             onClick={() => setView("dashboard")}
-            className={`btn ${
-              view === "dashboard" ? "bg-slate-900 text-white" : "bg-slate-100"
-            }`}
+            className={`btn ${view === "dashboard" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
           >
             Dashboard
           </button>
 
           <button
             onClick={() => setView("sheet")}
-            className={`btn ${
-              view === "sheet" ? "bg-slate-900 text-white" : "bg-slate-100"
-            }`}
+            className={`btn ${view === "sheet" ? "bg-slate-900 text-white" : "bg-slate-100"}`}
           >
             Sheet
           </button>
@@ -94,7 +88,7 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
         <FileUpload onData={handleData} />
       ) : (
         <>
-          {isRmaEmeaPage ? (
+          {isRmaPage ? (
             <RmaThemePanel color={color} setColor={setColor} />
           ) : (
             <ThemePanel
@@ -113,6 +107,13 @@ export default function DashboardPage({ pageTitle, storageKey, pageType = "ticke
               title={pageTitle}
               rows={rows}
               analytics={rmaEmeaAnalytics}
+              color={color}
+            />
+          ) : isRmaUsPage ? (
+            <RmaUsDashboard
+              title={pageTitle}
+              rows={rows}
+              analytics={rmaUsAnalytics}
               color={color}
             />
           ) : (
