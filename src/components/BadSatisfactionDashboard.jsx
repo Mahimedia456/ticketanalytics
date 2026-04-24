@@ -1,28 +1,17 @@
 import ChartCard from "./ChartCard";
-import { exportDashboardExcel } from "../utils/exportExcel";
 
-export default function BadSatisfactionDashboard({
-  title = "Bad Satisfaction",
-  rows = [],
-  analytics = {},
-}) {
+export default function BadSatisfactionDashboard({ title, analytics = {} }) {
   const color = "#fb7185";
 
   return (
     <div className="space-y-5 pb-10">
-      <div className="flex justify-end">
-        <button
-          onClick={() => exportDashboardExcel({ rows, analytics, title })}
-          className="btn bg-emerald-500 text-white"
-        >
-          Export Excel
-        </button>
-      </div>
-
-      <div className="rounded-3xl p-10 text-center shadow-sm" style={{ backgroundColor: color }}>
+      <div
+        className="rounded-3xl p-10 text-center shadow-sm"
+        style={{ backgroundColor: color }}
+      >
         <h1 className="text-4xl font-black text-slate-900">{title}</h1>
         <p className="mt-2 text-slate-800 font-medium">
-          Negative satisfaction tickets with issue comments and blank-response breakdown.
+          Bad satisfaction analysis by ticket ID, comments, with-comment and without-comment status.
         </p>
       </div>
 
@@ -37,42 +26,58 @@ export default function BadSatisfactionDashboard({
       </div>
 
       <div className="grid xl:grid-cols-2 gap-5">
-        <ChartCard title="Comment / No Comment" data={analytics.commentStatus || []} defaultType="pie" defaultColor={color} />
-        <ChartCard title="Negative Comment Keywords" data={analytics.topWords || []} defaultType="bar" defaultColor={color} horizontal limit={30} />
+        <ChartCard
+          title="With Comment / Without Comment"
+          data={analytics.commentStatus || []}
+          defaultType="pie"
+          defaultColor={color}
+        />
+
+        <ChartCard
+          title="Comment Percentage"
+          data={analytics.percentage || []}
+          defaultType="bar"
+          defaultColor={color}
+        />
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-5">
-        <CommentTable title="Bad Tickets With Comment" data={analytics.withComment || []} columns={analytics.columns || {}} />
-        <CommentTable title="Bad Tickets Without Comment" data={analytics.withoutComment || []} columns={analytics.columns || {}} />
-      </div>
+      <TicketTable title="Bad Satisfaction Ticket Table" rows={analytics.rows || []} />
     </div>
   );
 }
 
-function CommentTable({ title, data = [], columns = {} }) {
+function TicketTable({ title, rows = [] }) {
   return (
     <div className="dashboard-card p-5">
       <h3 className="font-black text-lg mb-4">{title}</h3>
-      <div className="overflow-auto max-h-[650px] rounded-xl border border-slate-100">
+
+      <div className="overflow-auto max-h-[720px] rounded-xl border border-slate-100">
         <table className="soft-table">
           <thead>
             <tr>
               <th>#</th>
               <th>Ticket ID</th>
+              <th>Status</th>
               <th>Comment</th>
             </tr>
           </thead>
+
           <tbody>
-            {data.length ? (
-              data.map((row, index) => (
-                <tr key={index}>
+            {rows.length ? (
+              rows.map((row, index) => (
+                <tr key={`${row.ticketId}-${index}`}>
                   <td>{index + 1}</td>
-                  <td className="font-bold">{row[columns.ticketCol]}</td>
-                  <td>{row[columns.commentCol] || "No comment"}</td>
+                  <td className="font-bold">{row.ticketId}</td>
+                  <td>{row.withComment ? "With Comment" : "Without Comment"}</td>
+                  <td>{row.comment || "No comment"}</td>
                 </tr>
               ))
             ) : (
-              <tr><td colSpan="3" className="text-center text-slate-400 py-6">No data found</td></tr>
+              <tr>
+                <td colSpan="4" className="text-center text-slate-400 py-6">
+                  No data found
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

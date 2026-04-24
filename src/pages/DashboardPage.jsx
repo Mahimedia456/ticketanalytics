@@ -3,12 +3,14 @@ import FileUpload from "../components/FileUpload";
 import SheetEditor from "../components/SheetEditor";
 import ThemePanel from "../components/ThemePanel";
 import RmaThemePanel from "../components/RmaThemePanel";
+
 import Dashboard from "../components/Dashboard";
 import RmaEmeaDashboard from "../components/RmaEmeaDashboard";
 import RmaUsDashboard from "../components/RmaUsDashboard";
 import GoodSatisfactionDashboard from "../components/GoodSatisfactionDashboard";
 import BadSatisfactionDashboard from "../components/BadSatisfactionDashboard";
 import ComparisonDashboard from "../components/ComparisonDashboard";
+
 import {
   autoDetectTicketColumns,
   buildTicketAnalytics,
@@ -29,6 +31,7 @@ export default function DashboardPage({
   const [color, setColor] = useState("#4fd1a5");
   const [mapping, setMapping] = useState({});
 
+  const isTicketPage = pageType === "ticket";
   const isRmaEmeaPage = pageType === "rma-emea";
   const isRmaUsPage = pageType === "rma-us";
   const isRmaPage = isRmaEmeaPage || isRmaUsPage;
@@ -38,6 +41,8 @@ export default function DashboardPage({
   const isSatisfactionPage = isGoodPage || isBadPage;
 
   useEffect(() => {
+    if (isComparisonPage) return;
+
     const saved = localStorage.getItem(`dashboard:${storageKey}`);
 
     if (saved) {
@@ -50,18 +55,20 @@ export default function DashboardPage({
         localStorage.removeItem(`dashboard:${storageKey}`);
       }
     }
-  }, [storageKey]);
+  }, [storageKey, isComparisonPage]);
 
   useEffect(() => {
+    if (isComparisonPage) return;
+
     localStorage.setItem(
       `dashboard:${storageKey}`,
       JSON.stringify({ rows, mapping, color })
     );
-  }, [rows, mapping, color, storageKey]);
+  }, [rows, mapping, color, storageKey, isComparisonPage]);
 
   function handleData(data) {
     setRows(data);
-    setMapping(isRmaPage || isSatisfactionPage ? {} : autoDetectTicketColumns(data));
+    setMapping(isTicketPage ? autoDetectTicketColumns(data) : {});
     setView("dashboard");
   }
 
@@ -104,7 +111,7 @@ export default function DashboardPage({
     return buildComparisonAnalytics(goodRows, badRows);
   }, [rows, storageKey]);
 
-  const showUpload = !rows.length && !isComparisonPage;
+  const shouldShowUpload = !rows.length && !isComparisonPage;
 
   return (
     <div className="space-y-6">
@@ -112,7 +119,9 @@ export default function DashboardPage({
         <div>
           <h2 className="text-2xl font-black">{pageTitle}</h2>
           <p className="text-sm text-slate-500">
-            Upload separate sheet for this page.
+            {isComparisonPage
+              ? "Comparison uses uploaded Good and Bad Satisfaction sheets."
+              : "Upload separate sheet for this page."}
           </p>
         </div>
 
@@ -145,22 +154,25 @@ export default function DashboardPage({
         </div>
       </div>
 
-      {showUpload ? (
+      {shouldShowUpload ? (
         <FileUpload onData={handleData} />
       ) : (
         <>
-          {!isComparisonPage &&
-            (isRmaPage || isSatisfactionPage ? (
-              <RmaThemePanel color={color} setColor={setColor} />
-            ) : (
-              <ThemePanel
-                color={color}
-                setColor={setColor}
-                analytics={ticketAnalytics}
-                mapping={mapping}
-                setMapping={setMapping}
-              />
-            ))}
+          {!isComparisonPage && !isSatisfactionPage && (
+            <>
+              {isRmaPage ? (
+                <RmaThemePanel color={color} setColor={setColor} />
+              ) : (
+                <ThemePanel
+                  color={color}
+                  setColor={setColor}
+                  analytics={ticketAnalytics}
+                  mapping={mapping}
+                  setMapping={setMapping}
+                />
+              )}
+            </>
+          )}
 
           {view === "sheet" && !isComparisonPage ? (
             <SheetEditor rows={rows} setRows={setRows} />
@@ -181,14 +193,12 @@ export default function DashboardPage({
           ) : isGoodPage ? (
             <GoodSatisfactionDashboard
               title={pageTitle}
-              rows={rows}
               analytics={goodAnalytics}
               color={color}
             />
           ) : isBadPage ? (
             <BadSatisfactionDashboard
               title={pageTitle}
-              rows={rows}
               analytics={badAnalytics}
             />
           ) : isComparisonPage ? (

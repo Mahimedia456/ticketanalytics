@@ -1,5 +1,13 @@
 function cleanText(value) {
-  return String(value || "").replace(/\u00a0/g, " ").trim();
+  return String(value || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/_x000D_/g, " ")
+    .trim();
+}
+
+function cleanNumber(value) {
+  const num = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(num) ? num : 0;
 }
 
 function normalizeKey(key = "") {
@@ -21,71 +29,76 @@ function findColumn(columns, names) {
   return "";
 }
 
-function normalizeRows(rows = []) {
-  return rows.filter((row) =>
+export function buildBadAnalytics(inputRows = []) {
+  const rows = inputRows.filter((row) =>
     Object.values(row).some((value) => cleanText(value) !== "")
   );
-}
 
-function topWords(rows, commentCol) {
-  const stop = new Set([
-    "the", "and", "you", "your", "was", "were", "with", "for", "that",
-    "this", "very", "support", "service", "customer", "atomos", "issue",
-    "product", "not", "but", "have", "has", "had", "there",
-  ]);
+  const columns = rows.length ? Object.keys(rows[0]) : [];
 
-  const map = {};
-
-  rows.forEach((row) => {
-    cleanText(row[commentCol])
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, " ")
-      .split(/\s+/)
-      .filter((word) => word.length > 2 && !stop.has(word))
-      .forEach((word) => {
-        map[word] = (map[word] || 0) + 1;
-      });
-  });
-
-  return Object.entries(map)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 30);
-}
-
-export function buildBadAnalytics(inputRows = []) {
-  const rows = normalizeRows(inputRows);
-  const columnsList = rows.length ? Object.keys(rows[0]) : [];
-
-  const ticketCol = findColumn(columnsList, ["ticket id", "ticketid", "ticket"]);
-  const commentCol = findColumn(columnsList, [
+  const ticketCol = findColumn(columns, ["ticket id", "ticketid", "ticket"]);
+  const commentCol = findColumn(columns, [
+    "bad satisfaction tickets comment",
+    "bad satisfaction comment",
     "satisfaction comments",
-    "bad satisfaction comments",
     "comment",
   ]);
 
-  const withComment = rows.filter((row) => cleanText(row[commentCol]) !== "");
-  const withoutComment = rows.filter((row) => cleanText(row[commentCol]) === "");
+  const withCommentCol = findColumn(columns, [
+    "bad satisfaction tickets w comment",
+    "badsatisfactionticketswcomment",
+    "w comment",
+  ]);
+
+  const totalCol = findColumn(columns, [
+    "bad satisfaction tickets",
+    "badsatisfactiontickets",
+  ]);
+
+  const normalizedRows = rows.map((row) => {
+    const comment = cleanText(row[commentCol]);
+    const total = totalCol ? cleanNumber(row[totalCol]) || 1 : 1;
+    const withComment = withCommentCol
+      ? cleanNumber(row[withCommentCol])
+      : comment
+        ? 1
+        : 0;
+
+    return {
+      ticketId: cleanText(row[ticketCol]),
+      comment,
+      total,
+      withComment,
+      withoutComment: withComment ? 0 : 1,
+    };
+  });
+
+  const totalTickets = normalizedRows.reduce((sum, row) => sum + row.total, 0);
+  const withComment = normalizedRows.reduce((sum, row) => sum + row.withComment, 0);
+  const withoutComment = totalTickets - withComment;
+  const withCommentPercent = totalTickets
+    ? Math.round((withComment / totalTickets) * 100)
+    : 0;
 
   return {
     type: "bad",
-    rows,
-    columns: { ticketCol, commentCol },
+    rows: normalizedRows,
 
     kpis: [
-      { title: "Bad Satisfaction Tickets", value: rows.length },
-      { title: "With Comment", value: withComment.length },
-      { title: "Without Comment", value: withoutComment.length },
-      { title: "Negative Keywords", value: topWords(withComment, commentCol).length },
+      { title: "Bad Satisfaction Tickets", value: totalTickets },
+      { title: "With Comment", value: withComment },
+      { title: "Without Comment", value: withoutComment },
+      { title: "With Comment %", value: `${withCommentPercent}%` },
     ],
 
     commentStatus: [
-      { name: "With Comment", count: withComment.length },
-      { name: "Without Comment", count: withoutComment.length },
+      { name: "With Comment", count: withComment },
+      { name: "Without Comment", count: withoutComment },
     ],
 
-    topWords: topWords(withComment, commentCol),
-    withComment,
-    withoutComment,
+    percentage: [
+      { name: "With Comment %", count: withCommentPercent },
+      { name: "Without Comment %", count: 100 - withCommentPercent },
+    ],
   };
 }

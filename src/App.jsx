@@ -6,9 +6,9 @@ const pages = [
   { path: "/ticket-dashboard", title: "Ticket Dashboard", type: "ticket" },
   { path: "/rma-emea-dashboard", title: "RMA EMEA Dashboard", type: "rma-emea" },
   { path: "/rma-us-dashboard", title: "RMA US Dashboard", type: "rma-us" },
-  { path: "/good-satisfaction", title: "Good Satisfaction", type: "ticket" },
-  { path: "/bad-satisfaction", title: "Bad Satisfaction", type: "ticket" },
-  { path: "/comparison", title: "Both Comparison", type: "ticket" },
+  { path: "/good-satisfaction", title: "Good Satisfaction", type: "good-satisfaction" },
+  { path: "/bad-satisfaction", title: "Bad Satisfaction", type: "bad-satisfaction" },
+  { path: "/comparison", title: "Satisfaction Comparison", type: "comparison" },
 ];
 
 export default function App() {
