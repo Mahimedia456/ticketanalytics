@@ -75,7 +75,7 @@ export default function RmaEmeaDashboard({
           <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
           <ChartCard title="Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
         </div>
-
+{/* 
         <div className="dashboard-card p-5">
           <h3 className="font-black text-lg mb-4">RMA EMEA Summary Tables</h3>
 
@@ -89,7 +89,7 @@ export default function RmaEmeaDashboard({
             <MiniTable title="D-Stock" data={analytics.dStockByProduct || []} />
             <MiniTable title="Drive RMA Cases" data={analytics.driveCases || []} />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
