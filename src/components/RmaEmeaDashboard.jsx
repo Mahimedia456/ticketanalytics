@@ -69,10 +69,32 @@ export default function RmaEmeaDashboard({
           <ChartCard title="Replacement / RMA Units by Product" data={analytics.replacementUnits || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
           <ChartCard title="Rush Sent Out by Product" data={analytics.rushByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
           <ChartCard title="Stock Units Received by Product" data={analytics.receivedByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
-          <ChartCard title="Receive Only by Product" data={analytics.receiveOnlyByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
-          <ChartCard title="B-Stock by Product" data={analytics.bStockByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
-          <ChartCard title="D-Stock by Product" data={analytics.dStockByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
-          <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
+          {/* <ChartCard title="Receive Only by Product" data={analytics.receiveOnlyByProduct || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} /> */}
+{/* <ChartCard
+  title="B-Stock by Product"
+  data={analytics.bStockByProduct || []}
+  defaultType="horizontalBar"
+  defaultColor={themeColor}
+  horizontal
+  limit={50}
+/>
+<ChartCard
+  title="D-Stock by Product"
+  data={analytics.dStockByProduct || []}
+  defaultType="horizontalBar"
+  defaultColor={themeColor}
+  horizontal
+  limit={50}
+/>     */}
+<ChartCard
+  title="A-Stock by Product"
+  data={analytics.aStockByProduct || []}
+  defaultType="horizontalBar"
+  defaultColor={themeColor}
+  horizontal
+  limit={50}
+/>
+      <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
           <ChartCard title="Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={50} />
         </div>
 {/* 

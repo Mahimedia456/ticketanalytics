@@ -68,13 +68,21 @@ function exportPDF() {
 
           <ChartCard title="Rush Sent Out by Product" data={analytics.rushSent || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
           <ChartCard title="RMA Units by Product" data={analytics.rmaUnits || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
-          <ChartCard title="Rush Sent B-Stock by Product" data={analytics.rushBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          {/* <ChartCard title="Rush Sent B-Stock by Product" data={analytics.rushBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} /> */}
           <ChartCard title="Receive D-Stock by Product" data={analytics.receiveDStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
-          <ChartCard title="Receive B-Stock by Product" data={analytics.receiveBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
-          <ChartCard title="Receive A-Stock by Product" data={analytics.receiveAStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
+          {/* <ChartCard title="Receive B-Stock by Product" data={analytics.receiveBStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} /> */}
+          {/* <ChartCard title="Receive A-Stock by Product" data={analytics.receiveAStock || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} /> */}
           <ChartCard title="Pending Ship / Receive" data={analytics.pendingComparison || []} defaultType="bar" defaultColor={themeColor} />
-          <ChartCard title="Google Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
-        </div>
+<div className="xl:col-span-2">
+  <ChartCard
+    title="Google Drive RMA Cases by Product"
+    data={analytics.driveCases || []}
+    defaultType="bar"
+    defaultColor={themeColor}
+    horizontal
+    limit={60}
+  />
+</div>        </div>
 
         {/* <div className="dashboard-card p-5">
           <h3 className="font-black text-lg mb-4">RMA US Summary Tables</h3>
