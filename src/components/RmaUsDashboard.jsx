@@ -76,7 +76,7 @@ function exportPDF() {
           <ChartCard title="Google Drive RMA Cases by Product" data={analytics.driveCases || []} defaultType="bar" defaultColor={themeColor} horizontal limit={60} />
         </div>
 
-        <div className="dashboard-card p-5">
+        {/* <div className="dashboard-card p-5">
           <h3 className="font-black text-lg mb-4">RMA US Summary Tables</h3>
 
           <div className="grid xl:grid-cols-3 gap-5">
@@ -89,7 +89,7 @@ function exportPDF() {
             <MiniTable title="Receive A-Stock" data={analytics.receiveAStock || []} />
             <MiniTable title="Google Drive RMA Cases" data={analytics.driveCases || []} />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
