@@ -1,32 +1,39 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  BarChart,
   Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
 } from "recharts";
 
-const DARK = "#0f172a";
+const ATOMOS_CYAN = "#00dcc5";
 
-const DEFAULT_PIE_COLORS = [
-  "#0f172a",
+const PIE_COLORS = [
+  "#00dcc5",
   "#38bdf8",
-  "#4fd1a5",
-  "#818cf8",
-  "#f59e0b",
-  "#fb7185",
-  "#64748b",
+  "#22d3ee",
   "#14b8a6",
-  "#a855f7",
-  "#ef4444",
+  "#2dd4bf",
+  "#67e8f9",
+  "#0ea5e9",
+  "#06b6d4",
+  "#5eead4",
+  "#99f6e4",
+];
+
+const limitOptions = [
+  { label: "Top 10", value: 10 },
+  { label: "Top 25", value: 25 },
+  { label: "Top 50", value: 50 },
+  { label: "All", value: "all" },
 ];
 
 export default function ChartCard({
@@ -36,130 +43,128 @@ export default function ChartCard({
   defaultType = "bar",
   xKey = "name",
   yKey = "count",
-  defaultColor = DARK,
-  defaultTextColor = DARK,
+  defaultColor = ATOMOS_CYAN,
   showTable = true,
   horizontal = false,
-  limit = 20,
+  limit = 10,
 }) {
-  const initialType = horizontal ? "horizontalBar" : defaultType;
+  const [type, setType] = useState(horizontal ? "horizontalBar" : defaultType);
+  const [color, setColor] = useState(defaultColor || ATOMOS_CYAN);
+  const [chartLimit, setChartLimit] = useState(limit);
 
-  const [type, setType] = useState(initialType);
-  const [color, setColor] = useState(defaultColor || DARK);
-  const [textColor, setTextColor] = useState(defaultTextColor || DARK);
-  const [pieColors, setPieColors] = useState(DEFAULT_PIE_COLORS);
+  const chartData = useMemo(() => {
+    if (chartLimit === "all") return data;
+    return data.slice(0, Number(chartLimit));
+  }, [data, chartLimit]);
 
-  const chartData = data.slice(0, limit);
   const isHorizontal = type === "horizontalBar";
   const chartHeight = isHorizontal
-    ? Math.max(420, chartData.length * 34)
-    : 320;
-
-  function updatePieColor(index, value) {
-    setPieColors((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
-    });
-  }
+    ? Math.max(380, chartData.length * 34)
+    : 330;
 
   return (
     <div className="dashboard-card overflow-hidden pdf-section">
-      <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-800 px-5 py-4">
         <div>
-          <h3 className="font-black" style={{ color: textColor }}>
-            {title}
-          </h3>
-
-          {subtitle && (
-            <p className="text-xs mt-1" style={{ color: textColor, opacity: 0.65 }}>
-              {subtitle}
-            </p>
-          )}
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
+            Chart
+          </p>
+          <h3 className="mt-1 text-lg font-black text-white">{title}</h3>
+          {subtitle ? (
+            <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
+          ) : null}
         </div>
 
-        <div className="flex gap-2 items-center flex-wrap justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="input"
+            className="input h-10 max-w-[150px] py-0"
           >
             <option value="bar">Bar</option>
-            <option value="horizontalBar">Horizontal Bar</option>
+            <option value="horizontalBar">Horizontal</option>
             <option value="line">Line</option>
             <option value="pie">Pie</option>
           </select>
 
-          {type === "pie" ? (
-            chartData.map((_, index) => (
-              <input
-                key={`pie-color-${index}`}
-                type="color"
-                value={pieColors[index] || DARK}
-                onChange={(e) => updatePieColor(index, e.target.value)}
-                title={`Pie color ${index + 1}`}
-              />
-            ))
-          ) : (
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-            />
-          )}
+          <select
+            value={chartLimit}
+            onChange={(e) =>
+              setChartLimit(e.target.value === "all" ? "all" : Number(e.target.value))
+            }
+            className="input h-10 max-w-[120px] py-0"
+          >
+            {limitOptions.map((item) => (
+              <option key={item.label} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
 
           <input
             type="color"
-            value={textColor}
-            onChange={(e) => setTextColor(e.target.value)}
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="h-10 w-12 cursor-pointer rounded-xl border border-zinc-800 bg-black p-1"
           />
         </div>
       </div>
 
       {!chartData.length ? (
-        <div className="p-10 text-center text-slate-400">
-          No data found. Select correct column from Design & Column Controls.
+        <div className="p-10 text-center text-sm font-semibold text-zinc-500">
+          No data found.
         </div>
       ) : (
-        <div className="grid xl:grid-cols-[1.7fr_1fr] gap-4 p-5 pdf-expand">
-          <div style={{ height: chartHeight }} className="pdf-expand">
+        <div className="grid gap-5 p-5 xl:grid-cols-[1.7fr_1fr]">
+          <div className="pdf-expand" style={{ height: chartHeight }}>
             <ResponsiveContainer width="100%" height="100%">
               {type === "line" ? (
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey={xKey} fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                  <XAxis dataKey={xKey} fontSize={11} stroke="#a1a1aa" />
+                  <YAxis fontSize={11} stroke="#a1a1aa" />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#050505",
+                      border: "1px solid #27272a",
+                      borderRadius: 14,
+                      color: "#fff",
+                    }}
+                  />
                   <Line
                     type="monotone"
                     dataKey={yKey}
-                    stroke={color || DARK}
+                    stroke={color}
                     strokeWidth={3}
-                    dot={{ r: 4 }}
+                    dot={{ r: 4, fill: color }}
                   />
                 </LineChart>
               ) : type === "pie" ? (
                 <PieChart>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#050505",
+                      border: "1px solid #27272a",
+                      borderRadius: 14,
+                      color: "#fff",
+                    }}
+                  />
                   <Pie
                     data={chartData}
                     dataKey={yKey}
                     nameKey={xKey}
-                    outerRadius={110}
-                    innerRadius={55}
+                    outerRadius={115}
+                    innerRadius={58}
                     paddingAngle={2}
                     label={({ name, percent }) =>
-                      `${name} (${(percent * 100).toFixed(0)}%)`
+                      `${name} ${(percent * 100).toFixed(0)}%`
                     }
                     labelLine={false}
                   >
                     {chartData.map((_, index) => (
                       <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          pieColors[index] ||
-                          DEFAULT_PIE_COLORS[index % DEFAULT_PIE_COLORS.length]
-                        }
+                        key={index}
+                        fill={PIE_COLORS[index % PIE_COLORS.length]}
                       />
                     ))}
                   </Pie>
@@ -168,62 +173,77 @@ export default function ChartCard({
                 <BarChart
                   data={chartData}
                   layout="vertical"
-                  margin={{ top: 10, right: 35, left: 170, bottom: 10 }}
+                  margin={{ top: 10, right: 35, left: 165, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" fontSize={11} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                  <XAxis type="number" fontSize={11} stroke="#a1a1aa" />
                   <YAxis
                     type="category"
                     dataKey={xKey}
                     fontSize={11}
-                    width={165}
+                    stroke="#a1a1aa"
+                    width={160}
                     interval={0}
                   />
-                  <Tooltip />
-                  <Bar dataKey={yKey} fill={color || DARK} radius={[0, 8, 8, 0]} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#050505",
+                      border: "1px solid #27272a",
+                      borderRadius: 14,
+                      color: "#fff",
+                    }}
+                  />
+                  <Bar dataKey={yKey} fill={color} radius={[0, 10, 10, 0]} />
                 </BarChart>
               ) : (
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                   <XAxis
                     dataKey={xKey}
                     fontSize={11}
+                    stroke="#a1a1aa"
                     interval={0}
                     angle={-25}
                     textAnchor="end"
-                    height={70}
+                    height={75}
                   />
-                  <YAxis fontSize={11} />
-                  <Tooltip />
-                  <Bar dataKey={yKey} fill={color || DARK} radius={[8, 8, 0, 0]} />
+                  <YAxis fontSize={11} stroke="#a1a1aa" />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#050505",
+                      border: "1px solid #27272a",
+                      borderRadius: 14,
+                      color: "#fff",
+                    }}
+                  />
+                  <Bar dataKey={yKey} fill={color} radius={[10, 10, 0, 0]} />
                 </BarChart>
               )}
             </ResponsiveContainer>
           </div>
 
-          {showTable && (
-            <div className="rounded-xl border border-slate-100 pdf-expand">
+          {showTable ? (
+            <div className="max-h-[420px] overflow-auto rounded-2xl border border-zinc-800 pdf-expand">
               <table className="soft-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>{xKey === "date" ? "Date" : "Name"}</th>
+                    <th>Name</th>
                     <th>Count</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {data.map((row, index) => (
+                  {chartData.map((row, index) => (
                     <tr key={`${row[xKey]}-${index}`}>
                       <td>{index + 1}</td>
                       <td>{row[xKey]}</td>
-                      <td className="font-bold">{row[yKey]}</td>
+                      <td className="font-black text-white">{row[yKey]}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>

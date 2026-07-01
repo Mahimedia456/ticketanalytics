@@ -1,29 +1,22 @@
 const themes = [
-  { name: "Dark", color: "#0f172a" },
-  { name: "Mint", color: "#4fd1a5" },
+  { name: "Atomos Cyan", color: "#00dcc5" },
   { name: "Ocean", color: "#38bdf8" },
-  { name: "Purple", color: "#818cf8" },
-  { name: "Amber", color: "#f59e0b" },
-  { name: "Rose", color: "#fb7185" },
+  { name: "Teal", color: "#14b8a6" },
+  { name: "Sky", color: "#0ea5e9" },
+  { name: "Mint", color: "#5eead4" },
 ];
 
-export default function ThemePanel({
-  color,
-  setColor,
-  analytics,
-  mapping,
-  setMapping,
-}) {
-  const columns = analytics.availableColumns || [];
+export default function ThemePanel({ color = "#00dcc5", setColor, analytics, mapping, setMapping }) {
+  const columns = analytics?.availableColumns || [];
 
   function SelectMap({ label, value, field }) {
     return (
       <div>
-        <label className="text-xs font-bold block mb-1">{label}</label>
+        <label className="mb-1 block text-xs font-bold text-zinc-400">{label}</label>
         <select
           value={value || ""}
           onChange={(e) =>
-            setMapping((prev) => ({ ...prev, [field]: e.target.value }))
+            setMapping?.((prev) => ({ ...prev, [field]: e.target.value }))
           }
           className="input min-w-44"
         >
@@ -39,26 +32,31 @@ export default function ThemePanel({
   }
 
   return (
-    <div className="dashboard-card p-4 space-y-4">
-      <div className="flex flex-wrap gap-5 items-center justify-between">
+    <div className="dashboard-card space-y-4 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-5">
         <div>
-          <h2 className="font-black text-slate-900">Design & Column Controls</h2>
-          <p className="text-xs text-slate-500">
-            Select correct columns if any chart is empty.
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
+            Design Controls
+          </p>
+          <h2 className="mt-1 text-xl font-black text-white">Theme & Columns</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Change chart color and map columns when chart data is empty.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap items-center gap-2">
           {themes.map((theme) => (
             <button
               key={theme.name}
-              onClick={() => setColor(theme.color)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold border ${
-                color === theme.color ? "border-slate-900" : "border-slate-200"
+              onClick={() => setColor?.(theme.color)}
+              className={`rounded-full border px-3 py-2 text-xs font-bold transition ${
+                color === theme.color
+                  ? "border-[#00dcc5] bg-[#00dcc5] text-black"
+                  : "border-zinc-800 bg-black text-zinc-400 hover:border-[#00dcc5]/60"
               }`}
             >
               <span
-                className="inline-block w-3 h-3 rounded-full mr-2"
+                className="mr-2 inline-block h-3 w-3 rounded-full align-middle"
                 style={{ backgroundColor: theme.color }}
               />
               {theme.name}
@@ -67,12 +65,14 @@ export default function ThemePanel({
         </div>
       </div>
 
-      <div className="grid md:grid-cols-5 gap-3">
-        <SelectMap label="Date Column" value={mapping.dateCol} field="dateCol" />
-        <SelectMap label="Category Column" value={mapping.categoryCol} field="categoryCol" />
-        <SelectMap label="Region Column" value={mapping.regionCol} field="regionCol" />
-        <SelectMap label="Product / Model Column" value={mapping.productCol} field="productCol" />
-      </div>
+      {columns.length ? (
+        <div className="grid gap-3 md:grid-cols-4">
+          <SelectMap label="Date Column" value={mapping?.dateCol} field="dateCol" />
+          <SelectMap label="Category Column" value={mapping?.categoryCol} field="categoryCol" />
+          <SelectMap label="Region Column" value={mapping?.regionCol} field="regionCol" />
+          <SelectMap label="Product Column" value={mapping?.productCol} field="productCol" />
+        </div>
+      ) : null}
     </div>
   );
 }
