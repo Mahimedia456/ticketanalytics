@@ -10,6 +10,8 @@ import ticketRoutes from "./routes/ticketRoutes.js";
 import rmaEmeaRoutes from "./routes/rmaEmeaRoutes.js";
 import rmaUsRoutes from "./routes/rmaUsRoutes.js";
 import satisfactionRoutes from "./routes/satisfactionRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -41,5 +43,7 @@ app.use("/api/tickets", ticketRoutes);
 app.use("/api/rma-emea", rmaEmeaRoutes);
 app.use("/api/rma-us", rmaUsRoutes);
 app.use("/api/satisfaction", satisfactionRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/users", userRoutes);
 
 export default app;

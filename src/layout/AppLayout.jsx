@@ -1,14 +1,23 @@
 import { LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AtomosLogo from "../components/AtomosLogo";
+import { isAdmin } from "../utils/auth";
 
 export default function AppLayout({ pages }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
+  const visiblePages = useMemo(() => {
+    return (pages || []).filter((page) => {
+      if (page.adminOnly && !isAdmin()) return false;
+      return true;
+    });
+  }, [pages]);
+
   function logout() {
     localStorage.removeItem("atomos_auth_user");
+    localStorage.removeItem("atomos_auth_token");
     navigate("/login", { replace: true });
   }
 
@@ -31,14 +40,14 @@ export default function AppLayout({ pages }) {
 
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen((value) => !value)}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-white lg:hidden"
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
 
           <nav className="hidden items-center gap-2 lg:flex">
-            {pages.map((page) => (
+            {visiblePages.map((page) => (
               <NavLink
                 key={page.path}
                 to={page.path}
@@ -67,7 +76,7 @@ export default function AppLayout({ pages }) {
         {open ? (
           <nav className="border-t border-zinc-900 bg-black px-5 py-4 lg:hidden">
             <div className="grid gap-2">
-              {pages.map((page) => (
+              {visiblePages.map((page) => (
                 <NavLink
                   key={page.path}
                   to={page.path}

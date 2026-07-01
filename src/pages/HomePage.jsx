@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import HomeUploadCard from "../components/HomeUploadCard";
 import { fetchHomeOverview } from "../services/homeApi";
 import { importMonthlyDataset } from "../services/importsApi";
+import { isAdmin } from "../utils/auth";
 
 const STORAGE_KEY = "atomos_home_uploads";
 
@@ -99,6 +100,7 @@ function CompactStat({ label, value, description }) {
 }
 
 export default function HomePage() {
+  const uploadAllowed = isAdmin();
   const currentYear = new Date().getFullYear();
   const saved = getSavedUploads();
 
@@ -187,6 +189,8 @@ export default function HomePage() {
   }, [selectedYear, selectedMonth]);
 
   async function handleUpload(localKey, rows, file) {
+    if (!uploadAllowed) return;
+
     setUploadingKey(localKey);
     setMessage("");
     setError("");
@@ -232,6 +236,8 @@ export default function HomePage() {
   }
 
   function clearPreview() {
+    if (!uploadAllowed) return;
+
     const next = {
       year: selectedYear,
       month: selectedMonth,
@@ -272,8 +278,9 @@ export default function HomePage() {
               </h1>
 
               <p className="mt-5 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base sm:leading-7">
-                Select reporting year and month. Upload Ticket, RMA EMEA, RMA US,
-                Good Satisfaction and Bad Satisfaction files for the selected month.
+                Select reporting year and month. Dashboards and reports load
+                month-wise data from backend. Upload is available for admin
+                accounts only.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -292,22 +299,26 @@ export default function HomePage() {
                   View Reports
                 </Link>
 
-                <a
-                  href="#data-import"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-5 py-3 text-sm font-black text-zinc-300 hover:border-[#00dcc5]/70 hover:text-[#00dcc5]"
-                >
-                  <UploadCloud size={17} />
-                  Upload Data
-                </a>
+                {uploadAllowed ? (
+                  <>
+                    <a
+                      href="#data-import"
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-5 py-3 text-sm font-black text-zinc-300 hover:border-[#00dcc5]/70 hover:text-[#00dcc5]"
+                    >
+                      <UploadCloud size={17} />
+                      Upload Data
+                    </a>
 
-                <button
-                  type="button"
-                  onClick={clearPreview}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-200 hover:bg-red-500/15"
-                >
-                  <Trash2 size={17} />
-                  Clear Preview
-                </button>
+                    <button
+                      type="button"
+                      onClick={clearPreview}
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-200 hover:bg-red-500/15"
+                    >
+                      <Trash2 size={17} />
+                      Clear Preview
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
 
@@ -323,7 +334,7 @@ export default function HomePage() {
                   </h2>
 
                   <p className="mt-1 text-xs leading-5 text-zinc-500">
-                    Data will be saved against {selectedPeriodKey}.
+                    Data is loaded against {selectedPeriodKey}.
                   </p>
                 </div>
 
@@ -340,7 +351,7 @@ export default function HomePage() {
                   <select
                     className="input"
                     value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
+                    onChange={(event) => setSelectedYear(event.target.value)}
                   >
                     {years.map((year) => (
                       <option key={year} value={year}>
@@ -357,7 +368,7 @@ export default function HomePage() {
                   <select
                     className="input"
                     value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    onChange={(event) => setSelectedMonth(event.target.value)}
                   >
                     {months.map((month, index) => {
                       const value = String(index + 1).padStart(2, "0");
@@ -387,6 +398,13 @@ export default function HomePage() {
             </div>
           </div>
 
+          {!uploadAllowed ? (
+            <div className="mt-6 rounded-2xl border border-zinc-800 bg-black/70 p-4 text-sm leading-6 text-zinc-400">
+              Your account has read-only access. You can view dashboards and
+              reports, but uploading or replacing files is disabled.
+            </div>
+          ) : null}
+
           {error ? (
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
               <AlertCircle size={19} className="mt-0.5 shrink-0" />
@@ -415,12 +433,18 @@ export default function HomePage() {
             />
             <CompactStat
               label="RMA Rows"
-              value={(dbSummary.rmaEmea || rmaEmeaRows.length) + (dbSummary.rmaUs || rmaUsRows.length)}
+              value={
+                (dbSummary.rmaEmea || rmaEmeaRows.length) +
+                (dbSummary.rmaUs || rmaUsRows.length)
+              }
               description={selectedPeriodName}
             />
             <CompactStat
               label="Satisfaction"
-              value={(dbSummary.good || goodRows.length) + (dbSummary.bad || badRows.length)}
+              value={
+                (dbSummary.good || goodRows.length) +
+                (dbSummary.bad || badRows.length)
+              }
               description={selectedPeriodName}
             />
             <CompactStat
@@ -458,77 +482,92 @@ export default function HomePage() {
         })}
       </section>
 
-      <section id="data-import" className="scroll-mt-28 space-y-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
-              Monthly Data Import
-            </p>
+      {uploadAllowed ? (
+        <section id="data-import" className="scroll-mt-28 space-y-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
+                Monthly Data Import
+              </p>
 
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">
-              Upload files for {selectedPeriodName}.
-            </h2>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">
+                Upload files for {selectedPeriodName}.
+              </h2>
 
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
-              Files upload to Supabase Storage bucket csv and rows save into database against {selectedPeriodKey}.
-            </p>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
+                Files upload to Supabase Storage bucket csv and rows save into
+                database against {selectedPeriodKey}.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-800 bg-black px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                Importing Into
+              </p>
+              <p className="mt-1 font-extrabold text-white">
+                {selectedPeriodName}
+              </p>
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-800 bg-black px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
-              Importing Into
-            </p>
-            <p className="mt-1 font-extrabold text-white">{selectedPeriodName}</p>
+          <div className="grid items-stretch gap-5 xl:grid-cols-3">
+            <HomeUploadCard
+              eyebrow="Ticket Data"
+              title="Upload Ticket Dashboard File"
+              description={`Save ticket analytics data to ${selectedPeriodName}.`}
+              buttonLabel={
+                uploadingKey === "tickets" ? "Uploading..." : "Upload Ticket File"
+              }
+              disabled={Boolean(uploadingKey)}
+              onUpload={({ rows, file }) => handleUpload("tickets", rows, file)}
+            />
+
+            <HomeUploadCard
+              eyebrow="RMA EMEA"
+              title="Upload RMA EMEA File"
+              description={`Save EMEA RMA data to ${selectedPeriodName}.`}
+              buttonLabel={
+                uploadingKey === "rmaEmea" ? "Uploading..." : "Upload RMA EMEA"
+              }
+              disabled={Boolean(uploadingKey)}
+              onUpload={({ rows, file }) => handleUpload("rmaEmea", rows, file)}
+            />
+
+            <HomeUploadCard
+              eyebrow="RMA US"
+              title="Upload RMA US File"
+              description={`Save US RMA data to ${selectedPeriodName}.`}
+              buttonLabel={
+                uploadingKey === "rmaUs" ? "Uploading..." : "Upload RMA US"
+              }
+              disabled={Boolean(uploadingKey)}
+              onUpload={({ rows, file }) => handleUpload("rmaUs", rows, file)}
+            />
+
+            <HomeUploadCard
+              eyebrow="Good Satisfaction"
+              title="Upload Good Satisfaction File"
+              description={`Save good satisfaction data to ${selectedPeriodName}.`}
+              buttonLabel={
+                uploadingKey === "good" ? "Uploading..." : "Upload Good File"
+              }
+              disabled={Boolean(uploadingKey)}
+              onUpload={({ rows, file }) => handleUpload("good", rows, file)}
+            />
+
+            <HomeUploadCard
+              eyebrow="Bad Satisfaction"
+              title="Upload Bad Satisfaction File"
+              description={`Save bad satisfaction data to ${selectedPeriodName}.`}
+              buttonLabel={
+                uploadingKey === "bad" ? "Uploading..." : "Upload Bad File"
+              }
+              disabled={Boolean(uploadingKey)}
+              onUpload={({ rows, file }) => handleUpload("bad", rows, file)}
+            />
           </div>
-        </div>
-
-        <div className="grid items-stretch gap-5 xl:grid-cols-3">
-          <HomeUploadCard
-            eyebrow="Ticket Data"
-            title="Upload Ticket Dashboard File"
-            description={`Save ticket analytics data to ${selectedPeriodName}.`}
-            buttonLabel={uploadingKey === "tickets" ? "Uploading..." : "Upload Ticket File"}
-            disabled={Boolean(uploadingKey)}
-            onUpload={({ rows, file }) => handleUpload("tickets", rows, file)}
-          />
-
-          <HomeUploadCard
-            eyebrow="RMA EMEA"
-            title="Upload RMA EMEA File"
-            description={`Save EMEA RMA data to ${selectedPeriodName}.`}
-            buttonLabel={uploadingKey === "rmaEmea" ? "Uploading..." : "Upload RMA EMEA"}
-            disabled={Boolean(uploadingKey)}
-            onUpload={({ rows, file }) => handleUpload("rmaEmea", rows, file)}
-          />
-
-          <HomeUploadCard
-            eyebrow="RMA US"
-            title="Upload RMA US File"
-            description={`Save US RMA data to ${selectedPeriodName}.`}
-            buttonLabel={uploadingKey === "rmaUs" ? "Uploading..." : "Upload RMA US"}
-            disabled={Boolean(uploadingKey)}
-            onUpload={({ rows, file }) => handleUpload("rmaUs", rows, file)}
-          />
-
-          <HomeUploadCard
-            eyebrow="Good Satisfaction"
-            title="Upload Good Satisfaction File"
-            description={`Save good satisfaction data to ${selectedPeriodName}.`}
-            buttonLabel={uploadingKey === "good" ? "Uploading..." : "Upload Good File"}
-            disabled={Boolean(uploadingKey)}
-            onUpload={({ rows, file }) => handleUpload("good", rows, file)}
-          />
-
-          <HomeUploadCard
-            eyebrow="Bad Satisfaction"
-            title="Upload Bad Satisfaction File"
-            description={`Save bad satisfaction data to ${selectedPeriodName}.`}
-            buttonLabel={uploadingKey === "bad" ? "Uploading..." : "Upload Bad File"}
-            disabled={Boolean(uploadingKey)}
-            onUpload={({ rows, file }) => handleUpload("bad", rows, file)}
-          />
-        </div>
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 }
