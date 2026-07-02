@@ -17,7 +17,10 @@ import {
 import { Link } from "react-router-dom";
 
 import HomeUploadCard from "../components/HomeUploadCard";
-import { fetchHomeOverview } from "../services/homeApi";
+import {
+  deleteHomeMonthData,
+  fetchHomeOverview,
+} from "../services/homeApi";
 import { importMonthlyDataset } from "../services/importsApi";
 import { isAdmin } from "../utils/auth";
 
@@ -91,9 +94,11 @@ function CompactStat({ label, value, description }) {
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
         {label}
       </p>
+
       <p className="mt-3 text-3xl font-black text-white">
         {Number(value || 0).toLocaleString()}
       </p>
+
       <p className="mt-2 text-xs leading-5 text-zinc-500">{description}</p>
     </article>
   );
@@ -143,6 +148,7 @@ export default function HomePage() {
   const years = useMemo(() => {
     const start = currentYear - 2;
     const end = currentYear + 2;
+
     return Array.from({ length: end - start + 1 }, (_, index) =>
       String(start + index)
     );
@@ -186,6 +192,7 @@ export default function HomePage() {
     });
 
     loadOverview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear, selectedMonth]);
 
   async function handleUpload(localKey, rows, file) {
@@ -235,26 +242,48 @@ export default function HomePage() {
     }
   }
 
-  function clearPreview() {
+  async function clearPreview() {
     if (!uploadAllowed) return;
 
-    const next = {
-      year: selectedYear,
-      month: selectedMonth,
-      period: selectedPeriodKey,
-      tickets: [],
-      rmaEmea: [],
-      rmaUs: [],
-      good: [],
-      bad: [],
-    };
+    const ok = window.confirm(
+      `Delete all local preview, database rows, upload records, and bucket files for ${selectedPeriodName}?`
+    );
 
-    setTicketRows([]);
-    setRmaEmeaRows([]);
-    setRmaUsRows([]);
-    setGoodRows([]);
-    setBadRows([]);
-    saveUploads(next);
+    if (!ok) return;
+
+    setUploadingKey("delete");
+    setMessage("");
+    setError("");
+
+    try {
+      await deleteHomeMonthData(selectedPeriodKey);
+
+      const next = {
+        year: selectedYear,
+        month: selectedMonth,
+        period: selectedPeriodKey,
+        tickets: [],
+        rmaEmea: [],
+        rmaUs: [],
+        good: [],
+        bad: [],
+      };
+
+      setTicketRows([]);
+      setRmaEmeaRows([]);
+      setRmaUsRows([]);
+      setGoodRows([]);
+      setBadRows([]);
+      setOverview(null);
+      saveUploads(next);
+
+      setMessage(`All data deleted for ${selectedPeriodName}.`);
+      await loadOverview();
+    } catch (err) {
+      setError(err.message || "Unable to delete month data.");
+    } finally {
+      setUploadingKey("");
+    }
   }
 
   return (
@@ -312,10 +341,15 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={clearPreview}
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-200 hover:bg-red-500/15"
+                      disabled={Boolean(uploadingKey)}
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-200 hover:bg-red-500/15 disabled:opacity-60"
                     >
-                      <Trash2 size={17} />
-                      Clear Preview
+                      {uploadingKey === "delete" ? (
+                        <Loader2 size={17} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={17} />
+                      )}
+                      {uploadingKey === "delete" ? "Deleting..." : "Delete Data"}
                     </button>
                   </>
                 ) : null}
@@ -348,6 +382,7 @@ export default function HomePage() {
                   <label className="mb-2 block text-xs font-bold text-zinc-400">
                     Year
                   </label>
+
                   <select
                     className="input"
                     value={selectedYear}
@@ -365,6 +400,7 @@ export default function HomePage() {
                   <label className="mb-2 block text-xs font-bold text-zinc-400">
                     Month
                   </label>
+
                   <select
                     className="input"
                     value={selectedMonth}
@@ -372,6 +408,7 @@ export default function HomePage() {
                   >
                     {months.map((month, index) => {
                       const value = String(index + 1).padStart(2, "0");
+
                       return (
                         <option key={month} value={value}>
                           {month}
@@ -408,6 +445,7 @@ export default function HomePage() {
           {error ? (
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
               <AlertCircle size={19} className="mt-0.5 shrink-0" />
+
               <div>
                 <p className="font-black">Operation failed</p>
                 <p className="mt-1 text-sm leading-6">{error}</p>
@@ -418,6 +456,7 @@ export default function HomePage() {
           {message ? (
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-[#00dcc5]/30 bg-[#00dcc5]/10 p-4 text-[#00dcc5]">
               <CheckCircle2 size={19} className="mt-0.5 shrink-0" />
+
               <div>
                 <p className="font-black">Operation completed</p>
                 <p className="mt-1 text-sm leading-6">{message}</p>
@@ -431,6 +470,7 @@ export default function HomePage() {
               value={dbSummary.tickets || ticketRows.length}
               description={selectedPeriodName}
             />
+
             <CompactStat
               label="RMA Rows"
               value={
@@ -439,6 +479,7 @@ export default function HomePage() {
               }
               description={selectedPeriodName}
             />
+
             <CompactStat
               label="Satisfaction"
               value={
@@ -447,6 +488,7 @@ export default function HomePage() {
               }
               description={selectedPeriodName}
             />
+
             <CompactStat
               label="Total Rows"
               value={dbSummary.totalRows || totalRows}
@@ -504,6 +546,7 @@ export default function HomePage() {
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
                 Importing Into
               </p>
+
               <p className="mt-1 font-extrabold text-white">
                 {selectedPeriodName}
               </p>
