@@ -13,6 +13,8 @@ import satisfactionRoutes from "./routes/satisfactionRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
+import aiSatisfactionRoutes from "./routes/aiSatisfaction.routes.js";
+
 dotenv.config();
 
 const app = express();
@@ -63,5 +65,6 @@ app.use("/api/rma-us", rmaUsRoutes);
 app.use("/api/satisfaction", satisfactionRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/ai/satisfaction", aiSatisfactionRoutes);
 
 export default app;

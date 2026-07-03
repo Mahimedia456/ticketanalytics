@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import {
+  AlertCircle,
+  BrainCircuit,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 
 import ChartCard from "../components/ChartCard";
 import DashboardActions from "../components/DashboardActions";
 import DashboardHero from "../components/DashboardHero";
-import DataTable from "../components/DataTable";
 import KpiCard from "../components/KpiCard";
+import SatisfactionAiModal from "../components/SatisfactionAiModal";
 
 import { buildBadAnalytics } from "../utils/badAnalytics";
 import { exportDashboardExcel } from "../utils/exportExcel";
@@ -22,6 +27,113 @@ function getReportMonth() {
   } catch {
     return new Date().toISOString().slice(0, 7);
   }
+}
+
+function BadSatisfactionAiTable({ rows = [] }) {
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  return (
+    <>
+      <section className="dashboard-card overflow-hidden">
+        <div className="border-b border-zinc-800 p-5">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
+            Bad Satisfaction Data
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">
+            Bad Satisfaction Records
+          </h2>
+
+          <p className="mt-2 text-sm text-zinc-400">
+            Showing {rows.length} bad satisfaction records.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+            <thead className="border-b border-zinc-800 bg-black/60 text-xs uppercase tracking-[0.14em] text-zinc-500">
+              <tr>
+                <th className="min-w-[140px] px-4 py-4 font-black">
+                  Ticket ID
+                </th>
+                <th className="min-w-[380px] px-4 py-4 font-black">
+                  Comments
+                </th>
+                <th className="min-w-[320px] px-4 py-4 font-black">
+                  Reason Notes
+                </th>
+                <th className="min-w-[180px] px-4 py-4 font-black">
+                  AI Summary
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-zinc-900">
+              {rows.length ? (
+                rows.map((row, index) => {
+                  const comment = row.comment || row.comments || "";
+                  const reason = row.reasonNotes || row.reason || "";
+                  const disabled = !comment && !reason;
+
+                  return (
+                    <tr
+                      key={`${row.ticketId || "ticket"}-${index}`}
+                      className="align-top transition hover:bg-[#00dcc5]/5"
+                    >
+                      <td className="px-4 py-4 font-bold text-white">
+                        {row.ticketId || "-"}
+                      </td>
+
+                      <td className="px-4 py-4 text-zinc-300">
+                        <span className="block whitespace-normal break-words leading-6">
+                          {comment || "-"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4 text-zinc-300">
+                        <span className="block whitespace-normal break-words leading-6">
+                          {reason || "-"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRow(row)}
+                          disabled={disabled}
+                          className="no-print no-export inline-flex items-center gap-2 rounded-xl bg-[#00dcc5] px-4 py-2.5 text-xs font-black text-black transition hover:bg-[#44fff0] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                        >
+                          <BrainCircuit size={16} />
+                          View Summary
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-4 py-12 text-center text-sm font-bold text-zinc-500"
+                  >
+                    No bad satisfaction records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {selectedRow ? (
+        <SatisfactionAiModal
+          row={selectedRow}
+          rating="Bad"
+          onClose={() => setSelectedRow(null)}
+        />
+      ) : null}
+    </>
+  );
 }
 
 export default function BadSatisfactionPage() {
@@ -152,14 +264,7 @@ export default function BadSatisfactionPage() {
           />
         </div>
 
-        <DataTable
-          columns={[
-            { key: "ticketId", label: "Ticket ID" },
-            { key: "comment", label: "Comments" },
-            { key: "reasonNotes", label: "Reason Notes" },
-          ]}
-          rows={analytics.rows || []}
-        />
+        <BadSatisfactionAiTable rows={analytics.rows || []} />
       </div>
     </div>
   );
