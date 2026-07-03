@@ -5,12 +5,25 @@ export function buildComparisonAnalytics(goodRows = [], badRows = []) {
   const good = buildGoodAnalytics(goodRows);
   const bad = buildBadAnalytics(badRows);
 
-  const goodTotal = good.rows.reduce((sum, row) => sum + row.total, 0);
-  const badTotal = bad.rows.reduce((sum, row) => sum + row.total, 0);
+  const goodTotal = (good.rows || []).reduce(
+    (sum, row) => sum + Number(row.total || 0),
+    0
+  );
+
+  const badTotal = (bad.rows || []).reduce(
+    (sum, row) => sum + Number(row.total || 0),
+    0
+  );
+
   const grandTotal = goodTotal + badTotal;
 
-  const goodPercent = grandTotal ? Math.round((goodTotal / grandTotal) * 100) : 0;
-  const badPercent = grandTotal ? Math.round((badTotal / grandTotal) * 100) : 0;
+  const goodPercent = grandTotal
+    ? Math.round((goodTotal / grandTotal) * 100)
+    : 0;
+
+  const badPercent = grandTotal
+    ? Math.round((badTotal / grandTotal) * 100)
+    : 0;
 
   return {
     good,
@@ -21,6 +34,7 @@ export function buildComparisonAnalytics(goodRows = [], badRows = []) {
       { title: "Good Satisfaction", value: goodTotal },
       { title: "Bad Satisfaction", value: badTotal },
       { title: "Good Satisfaction %", value: `${goodPercent}%` },
+      { title: "Bad Satisfaction %", value: `${badPercent}%` },
     ],
 
     comparison: [

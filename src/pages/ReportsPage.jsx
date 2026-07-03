@@ -81,41 +81,52 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0">
           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
             Atomos Reports
           </p>
+
           <h1 className="mt-2 text-3xl font-black text-white">
             Executive Report
           </h1>
+
           <p className="mt-2 text-sm text-zinc-500">
             Consolidated report for {reportMonth}.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="no-print flex flex-wrap items-center justify-start gap-2 xl:justify-end">
           <input
             type="month"
             value={reportMonth}
             onChange={(event) => setReportMonth(event.target.value)}
-            className="input max-w-[180px]"
+            className="h-12 w-[190px] rounded-full border border-zinc-800 bg-black px-5 text-sm font-bold text-white outline-none transition focus:border-[#00dcc5]"
           />
 
           <button
             type="button"
             onClick={loadReports}
             disabled={loading}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-zinc-300 hover:border-[#00dcc5]/70 hover:text-[#00dcc5] disabled:opacity-60"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-5 text-xs font-black uppercase tracking-[0.08em] text-zinc-300 transition hover:border-[#00dcc5]/70 hover:text-[#00dcc5] disabled:opacity-60"
           >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <RefreshCw size={16} />
+            )}
             Refresh
           </button>
 
           <button
             type="button"
-            onClick={() => exportDashboardPDF("atomos-executive-report", "Atomos Executive Report")}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-zinc-300 hover:border-[#00dcc5]/70 hover:text-[#00dcc5]"
+            onClick={() =>
+              exportDashboardPDF(
+                "atomos-executive-report",
+                "Atomos Executive Report"
+              )
+            }
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-800 bg-black px-5 text-xs font-black uppercase tracking-[0.08em] text-zinc-300 transition hover:border-[#00dcc5]/70 hover:text-[#00dcc5]"
           >
             <FileText size={16} />
             PDF
@@ -131,13 +142,16 @@ export default function ReportsPage() {
                     { title: "Total Rows", value: summary.totalRows || 0 },
                     { title: "Tickets", value: summary.tickets || 0 },
                     { title: "RMA Total", value: summary.rmaTotal || 0 },
-                    { title: "Satisfaction Total", value: summary.satisfactionTotal || 0 },
+                    {
+                      title: "Satisfaction Total",
+                      value: summary.satisfactionTotal || 0,
+                    },
                   ],
                 },
                 title: "Atomos Executive Report",
               })
             }
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#00dcc5] px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-black"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#00dcc5] px-5 text-xs font-black uppercase tracking-[0.08em] text-black transition hover:bg-[#44fff0]"
           >
             <Download size={16} />
             Excel
@@ -166,7 +180,8 @@ export default function ReportsPage() {
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
-            This page combines Ticket, RMA EMEA, RMA US, Good Satisfaction, Bad Satisfaction and Comparison insights.
+            This page combines Ticket, RMA EMEA, RMA US, Good Satisfaction, Bad
+            Satisfaction and Comparison insights.
           </p>
         </section>
 
@@ -174,7 +189,10 @@ export default function ReportsPage() {
           <KpiCard title="Total Rows" value={summary.totalRows || 0} />
           <KpiCard title="Ticket Rows" value={summary.tickets || 0} />
           <KpiCard title="RMA Total Rows" value={summary.rmaTotal || 0} />
-          <KpiCard title="Satisfaction Rows" value={summary.satisfactionTotal || 0} />
+          <KpiCard
+            title="Satisfaction Rows"
+            value={summary.satisfactionTotal || 0}
+          />
           <KpiCard title="RMA EMEA Rows" value={summary.rmaEmea || 0} />
           <KpiCard title="RMA US Rows" value={summary.rmaUs || 0} />
           <KpiCard title="Good Satisfaction Rows" value={summary.good || 0} />
@@ -193,7 +211,7 @@ export default function ReportsPage() {
           <ChartCard
             title="Tickets by Category"
             data={analytics.tickets.category || []}
-            defaultType="horizontalBar"
+            defaultType="horizontal_bar"
             defaultColor={DEFAULT_COLOR}
             horizontal
             limit={25}
@@ -226,7 +244,7 @@ export default function ReportsPage() {
           <ChartCard
             title="Satisfaction Comment Comparison"
             data={analytics.comparison.commentsComparison || []}
-            defaultType="horizontalBar"
+            defaultType="horizontal_bar"
             defaultColor={DEFAULT_COLOR}
             horizontal
             limit={10}

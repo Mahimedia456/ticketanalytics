@@ -140,8 +140,7 @@ export default function SatisfactionComparisonPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {(analytics.kpis || []).map((kpi) => (
+<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">              {(analytics.kpis || []).map((kpi) => (
                 <KpiCard key={kpi.title} title={kpi.title} value={kpi.value} />
               ))}
             </div>
