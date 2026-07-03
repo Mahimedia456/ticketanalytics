@@ -203,30 +203,7 @@ export default function GoodSatisfactionPage() {
           description={`Showing Good Satisfaction data for ${period}. Data is loaded from backend for ${reportMonth}.`}
         />
 
-        <div className="dashboard-card flex flex-wrap items-center justify-between gap-4 p-4">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
-              Backend Source
-            </p>
-            <p className="mt-1 text-sm text-zinc-400">
-              {upload?.original_filename
-                ? `Loaded from: ${upload.original_filename}`
-                : "No uploaded Good Satisfaction file found for this month."}
-            </p>
-          </div>
-
-          <div className="min-w-[180px]">
-            <label className="mb-2 block text-xs font-bold text-zinc-400">
-              Report Month
-            </label>
-            <input
-              type="month"
-              value={reportMonth}
-              onChange={(e) => setReportMonth(e.target.value)}
-              className="input"
-            />
-          </div>
-        </div>
+       
 
         {error ? (
           <div className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">

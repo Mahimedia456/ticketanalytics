@@ -1,9 +1,11 @@
-import api from "./apiClient";
+import { apiClient } from "./apiClient";
 
 export async function fetchRmaEmeaDashboard(reportMonth) {
-  const { data } = await api.get(
-    `/rma-emea/dashboard?reportMonth=${reportMonth}`
-  );
+  const query = reportMonth
+    ? `?reportMonth=${encodeURIComponent(reportMonth)}`
+    : "";
 
-  return data.data;
+  const response = await apiClient(`/rma-emea/dashboard${query}`);
+
+  return response.data || response;
 }

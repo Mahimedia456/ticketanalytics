@@ -115,41 +115,7 @@ export default function SatisfactionComparisonPage() {
           description={`Showing Good vs Bad Satisfaction comparison for ${period}. Data is loaded from backend for ${reportMonth}.`}
         />
 
-        <div className="dashboard-card flex flex-wrap items-center justify-between gap-4 p-4">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#00dcc5]">
-              Backend Source
-            </p>
-
-            <div className="mt-1 space-y-1 text-sm text-zinc-400">
-              <p>
-                Good:{" "}
-                {goodUpload?.original_filename
-                  ? goodUpload.original_filename
-                  : "No Good Satisfaction file found."}
-              </p>
-
-              <p>
-                Bad:{" "}
-                {badUpload?.original_filename
-                  ? badUpload.original_filename
-                  : "No Bad Satisfaction file found."}
-              </p>
-            </div>
-          </div>
-
-          <div className="min-w-[180px]">
-            <label className="mb-2 block text-xs font-bold text-zinc-400">
-              Report Month
-            </label>
-            <input
-              type="month"
-              value={reportMonth}
-              onChange={(event) => setReportMonth(event.target.value)}
-              className="input"
-            />
-          </div>
-        </div>
+        
 
         {error ? (
           <div className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">

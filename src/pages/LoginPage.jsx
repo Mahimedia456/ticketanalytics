@@ -47,125 +47,130 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-4 py-8 text-white">
+    <main className="relative min-h-screen overflow-y-auto bg-black px-4 py-5 text-white sm:py-6">
       <div className="pointer-events-none absolute inset-0 atomos-grid-bg opacity-20" />
       <div className="pointer-events-none absolute inset-0 atomos-glow" />
 
-      <section className="relative z-10 w-full max-w-[590px] rounded-[30px] border border-zinc-800 bg-[#050505]/95 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.75)] sm:p-8">
-        <div className="flex justify-center">
-          <AtomosLogo className="h-10 w-[210px] text-white" />
-        </div>
-
-        <div className="mt-7 text-center">
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#00dcc5]">
-            Analytics Workspace
-          </p>
-
-          <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] text-white">
-            Sign in to continue
-          </h1>
-
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Ticket, RMA and satisfaction dashboards.
-          </p>
-        </div>
-
-        {error ? (
-          <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-bold text-red-200">
-            {error}
+      <div className="relative z-10 flex min-h-[calc(100vh-40px)] items-center justify-center">
+        <section className="w-full max-w-[520px] rounded-[28px] border border-zinc-800 bg-[#050505]/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)] sm:p-6 lg:p-7">
+          <div className="flex justify-center">
+            <AtomosLogo className="h-9 w-[185px] text-white" />
           </div>
-        ) : null}
 
-        <form onSubmit={submit} className="mt-7 space-y-5">
-          <div>
-            <label className="mb-3 block text-[12px] font-black uppercase tracking-[0.2em] text-zinc-500">
-              Email Address
-            </label>
+          <div className="mt-5 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#00dcc5]">
+              Analytics Workspace
+            </p>
 
-            <div className="relative">
-              <Mail
-                className="pointer-events-none absolute left-5 top-1/2 z-10 -translate-y-1/2 text-zinc-500"
-                size={20}
-              />
+            <h1 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white sm:text-[28px]">
+              Sign in to continue
+            </h1>
 
-              <input
-                className="h-[66px] w-full rounded-[22px] border border-zinc-800 bg-black pl-14 pr-5 text-base font-medium text-white outline-none transition placeholder:text-zinc-600 focus:border-[#00dcc5] focus:ring-4 focus:ring-[#00dcc5]/10"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError("");
-                }}
-                placeholder="name@mahimediasolutions.com"
-                required
-              />
+            <p className="mt-1.5 text-sm leading-6 text-zinc-500">
+              Ticket, RMA and satisfaction dashboards.
+            </p>
+          </div>
+
+          {error ? (
+            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-bold text-red-200">
+              {error}
             </div>
-          </div>
+          ) : null}
 
-          <div>
-            <label className="mb-3 block text-[12px] font-black uppercase tracking-[0.2em] text-zinc-500">
-              Password
-            </label>
+          <form onSubmit={submit} className="mt-5 space-y-4">
+            <div>
+              <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                Email Address
+              </label>
 
-            <div className="relative">
-              <LockKeyhole
-                className="pointer-events-none absolute left-5 top-1/2 z-10 -translate-y-1/2 text-zinc-500"
-                size={20}
-              />
+              <div className="relative">
+                <Mail
+                  className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-zinc-500"
+                  size={19}
+                />
 
-              <input
-                className="h-[66px] w-full rounded-[22px] border border-zinc-800 bg-black pl-14 pr-14 text-base font-medium text-white outline-none transition placeholder:text-zinc-600 focus:border-[#00dcc5] focus:ring-4 focus:ring-[#00dcc5]/10"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError("");
-                }}
-                placeholder="Enter password"
-                required
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-900 hover:text-white"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+                <input
+                  className="h-[56px] w-full rounded-[20px] border border-zinc-800 bg-black pl-12 pr-5 text-sm font-medium text-white outline-none transition placeholder:text-zinc-600 focus:border-[#00dcc5] focus:ring-4 focus:ring-[#00dcc5]/10"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="name@mahimediasolutions.com"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            disabled={submitting}
-            className="flex h-[68px] w-full items-center justify-center gap-2 rounded-[28px] bg-[#00dcc5] text-base font-black text-black transition hover:shadow-[0_0_35px_rgba(0,220,197,0.28)] disabled:opacity-60"
-            type="submit"
-          >
-            {submitting ? <Loader2 size={20} className="animate-spin" /> : null}
-            {submitting ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
+            <div>
+              <label className="mb-2 block text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                Password
+              </label>
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-3">
-          {accounts.map((account) => (
+              <div className="relative">
+                <LockKeyhole
+                  className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-zinc-500"
+                  size={19}
+                />
+
+                <input
+                  className="h-[56px] w-full rounded-[20px] border border-zinc-800 bg-black pl-12 pr-13 text-sm font-medium text-white outline-none transition placeholder:text-zinc-600 focus:border-[#00dcc5] focus:ring-4 focus:ring-[#00dcc5]/10"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="Enter password"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-900 hover:text-white"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                </button>
+              </div>
+            </div>
+
             <button
-              key={account.email}
-              type="button"
-              onClick={() => {
-                setEmail(account.email);
-                setPassword(defaultPassword);
-                setError("");
-              }}
-              className="min-w-0 rounded-[20px] border border-zinc-800 bg-black p-4 text-left transition hover:border-[#00dcc5]/70 hover:bg-[#00dcc5]/10"
+              disabled={submitting}
+              className="flex h-[58px] w-full items-center justify-center gap-2 rounded-[24px] bg-[#00dcc5] text-sm font-black text-black transition hover:shadow-[0_0_35px_rgba(0,220,197,0.28)] disabled:opacity-60"
+              type="submit"
             >
-              <p className="text-base font-black text-white">{account.label}</p>
-              <p className="mt-2 truncate text-xs text-zinc-500" title={account.email}>
-                {account.email}
-              </p>
+              {submitting ? <Loader2 size={19} className="animate-spin" /> : null}
+              {submitting ? "Signing In..." : "Sign In"}
             </button>
-          ))}
-        </div>
-      </section>
+          </form>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {accounts.map((account) => (
+              <button
+                key={account.email}
+                type="button"
+                onClick={() => {
+                  setEmail(account.email);
+                  setPassword(defaultPassword);
+                  setError("");
+                }}
+                className="min-w-0 rounded-[18px] border border-zinc-800 bg-black p-3 text-left transition hover:border-[#00dcc5]/70 hover:bg-[#00dcc5]/10"
+              >
+                <p className="text-sm font-black text-white">{account.label}</p>
+                <p
+                  className="mt-1.5 truncate text-[11px] text-zinc-500"
+                  title={account.email}
+                >
+                  {account.email}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
